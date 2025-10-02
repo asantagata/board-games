@@ -202,13 +202,13 @@ const SpellActions = {
 }
 
 const SPELLS = [
-    {id: 0, name: 'Advance wizard', icon: [{tag: 'img', src: './wizards/generic.png'}, '➡️'], price: 2, action: () => SecondaryTurnActions.MOVE_WIZARD_BY(1, 'spell', 2), description: 'Move any wizard -- not just your own -- ahead by 1 space.', in: true},
-    {id: 1, name: 'Headwind wizard', icon: [{tag: 'img', src: './wizards/generic.png'}, '⬅️'], price: 2, action: () => SecondaryTurnActions.MOVE_WIZARD_BY(-1, 'spell', 2), description: 'Move any wizard -- not just your own -- back by 1 space.', in: true},
+    {id: 0, name: 'Advance wizard', icon: [{tag: 'img', src: './assets/wizards/generic.png'}, '➡️'], price: 2, action: () => SecondaryTurnActions.MOVE_WIZARD_BY(1, 'spell', 2), description: 'Move any wizard -- not just your own -- ahead by 1 space.', in: true},
+    {id: 1, name: 'Headwind wizard', icon: [{tag: 'img', src: './assets/wizards/generic.png'}, '⬅️'], price: 2, action: () => SecondaryTurnActions.MOVE_WIZARD_BY(-1, 'spell', 2), description: 'Move any wizard -- not just your own -- back by 1 space.', in: true},
     {id: 2, name: 'Advance tower', icon: ['🏯➡️'], price: 1, action: () => SecondaryTurnActions.MOVE_TOWER_BY(2, 'spell', 1), description: 'Move a tower ahead by 2 spaces.', in: true},
     {id: 3, name: 'Headwind tower', icon: ['🏯⬅️'], price: 1, action: () => SecondaryTurnActions.MOVE_TOWER_BY(-2, 'spell', 1), description: 'Move a tower back by 2 spaces.', in: true},
     {id: 4, name: 'Nudge ravenskeep', icon: ['⬛➡️'], price: 2, action: () => SpellActions.NUDGE_RAVENSKEEP(SPELLS[4].price), description: 'Move the Ravenskeep to the next unoccupied space.', in: false},
-    {id: 5, name: 'Free wizard', icon: [{tag: 'img', src: './wizards/generic.png'}, '⬆️'], price: 1, action: () => SpellActions.FREE_WIZARD(SPELLS[5].price), description: 'Peek under a tower. If one of your wizards is there, move it to the top of the tower.', in: false},
-    {id: 6, name: 'Fill potion', icon: [{tag: 'img', src: './potions/generic.png'}, '↩️'], price: 2, action: () => SpellActions.FILL_POTION(SPELLS[6].price), description: 'Spend two full potions to fill a third.', in: false, condition: () => { return getPlayerById(actingPlayer.id).potions.empty > 0 }},
+    {id: 5, name: 'Free wizard', icon: [{tag: 'img', src: './assets/wizards/generic.png'}, '⬆️'], price: 1, action: () => SpellActions.FREE_WIZARD(SPELLS[5].price), description: 'Peek under a tower. If one of your wizards is there, move it to the top of the tower.', in: false},
+    {id: 6, name: 'Fill potion', icon: [{tag: 'img', src: './assets/potions/generic.png'}, '↩️'], price: 2, action: () => SpellActions.FILL_POTION(SPELLS[6].price), description: 'Spend two full potions to fill a third.', in: false, condition: () => { return getPlayerById(actingPlayer.id).potions.empty > 0 }},
 ]
 
 const toggleSpell = (id) => {
@@ -249,7 +249,7 @@ const spellBadgeElementTemplate = (spell) => {
             {
                 classList: ['spell-price'],
                 children: [...Array(spell.price)].map(() => {
-                    return {tag: 'img', src: './potions/generic.png'}
+                    return {tag: 'img', src: './assets/potions/generic.png'}
                 })
             }
         ]
@@ -605,7 +605,7 @@ const spellBadgeElementTemplate = (spell) => {
             children: [{
                 tag: 'img',
                 classList: ['action-icon'],
-                src: `./wizards/${getPlayerById(actingPlayer.id).color}.png`
+                src: `./assets/wizards/${getPlayerById(actingPlayer.id).color}.png`
             }]
         }
     }
@@ -708,7 +708,7 @@ const spellBadgeElementTemplate = (spell) => {
                             return {
                                 tag: 'img',
                                 classList: ['player-wizard', ...(i < player.wizardsInRavenskeep ? [] : ['ghost'])],
-                                src: `./wizards/${player.color}.png`
+                                src: `./assets/wizards/${player.color}.png`
                             }
                         })
                     ]
@@ -727,7 +727,7 @@ const spellBadgeElementTemplate = (spell) => {
                                     children: [{
                                         classList: ['player-potion'],
                                         tag: 'img',
-                                        src: (potionType == 'empty' ? './potions/empty.png' : `./potions/${player.color}.png`)
+                                        src: (potionType == 'empty' ? './assets/potions/empty.png' : `./assets/potions/${player.color}.png`)
                                     }]
                                 }
                             }
@@ -988,7 +988,7 @@ const spellBadgeElementTemplate = (spell) => {
                                         {
                                             tag: 'img',
                                             classList: ['wizard-img'],
-                                            src: `./wizards/${color}.png`,
+                                            src: `./assets/wizards/${color}.png`,
                                             onclick: `handleColorIconClick(this)`
                                         }
                                     ]
@@ -1278,7 +1278,7 @@ const spellBadgeElementTemplate = (spell) => {
                 {
                     tag: 'img',
                     classList: ['wizard-img'],
-                    src: `./wizards/${getPlayerById(wizard.playerId).color}.png`
+                    src: `./assets/wizards/${getPlayerById(wizard.playerId).color}.png`
                 }
             ]
         }

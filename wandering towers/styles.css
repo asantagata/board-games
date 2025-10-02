@@ -72,15 +72,15 @@ body {
     width: var(--tower-wall-width);
     height: var(--tower-wall-width);
     position: absolute;
-    background-image: url(./wall.png);
+    background-image: url(assets/wall.png);
 }
 
 .ravenskeep .tower-wall {
-    background-image: url(./ravenskeep_wall.png);
+    background-image: url(assets/ravenskeep_wall.png);
 }
 
 .ravenskeep .tower-top {
-    background-image: url(./ravenskeep_top.png);
+    background-image: url(assets/ravenskeep_top.png);
 }
 
 .tower-wall:nth-child(1) { 
@@ -109,11 +109,11 @@ body {
     transform: translate(-50%, -50%) rotate3d(1, 0, 0, 90deg) translate3d(0, 0, calc(var(--tower-wall-width) / 2));
     clip-path: polygon(0 50%, 25% calc(50% + 50% * sqrt(3) / 2), 75% calc(50% + 50% * sqrt(3) / 2), 100% 50%, 75% calc(50% - 50% * sqrt(3) / 2), 25% calc(50% - 50% * sqrt(3) / 2));
     perspective-origin: center center;
-    background-image: url(./top.png);
+    background-image: url(assets/top.png);
 }
 
 .tower-wrapper.blue .tower-top {
-    background-image: url(./birdtop.png);
+    background-image: url(assets/birdtop.png);
 }
 
 .tower-label-wrapper {
@@ -175,7 +175,7 @@ body {
 }
 
 .glade.blue .glade-body {
-    background-image: url(./birdglade.png);
+    background-image: url(assets/birdglade.png);
 }
 
 .tower-wrapper:nth-child(2) { transform: translateX(calc(var(--glade-diameter) / 2)) translateY(calc(var(--glade-diameter) / 2)) translateY(calc((-1 * 2 + 1.5) * var(--tower-wall-width))); }

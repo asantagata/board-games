@@ -263,7 +263,7 @@
                 <table id="glossary">
                     <tbody>
                         <tr>
-                            <td><img class="player-wizard" src="./wizards/generic.png"></td>
+                            <td><img class="player-wizard" src="assets/wizards/generic.png"></td>
                             <td>A wizard. (On the board, your wizards' outfits will be adjusted to your player color.)</td>
                         </tr>
                         <tr>
@@ -300,7 +300,7 @@
                         </tr>
                         <tr>
                             <td>
-                                <img class="player-wizard round" src="./birdglade.png">
+                                <img class="player-wizard round" src="assets/birdglade.png">
                             </td>
                             <td>The raven emblem.</td>
                         </tr>
@@ -315,7 +315,7 @@
                 <p>To use and discard a card, click the card above. Then, at the end of your turn, click <span style="display: inline-flex; border-radius: 1px; background: #222">🔄</span> to refill your hand.</p>
                 <p>On most turns, you will use two card actions. There are two parts to a card:</p>
                 <ul>
-                    <li>The target: either a tower <span class='icon'>🏯</span>, a wizard <span class='icon'><img class="player-wizard" src="./wizards/generic.png"></span>, or both.</li>
+                    <li>The target: either a tower <span class='icon'>🏯</span>, a wizard <span class='icon'><img class="player-wizard" src="assets/wizards/generic.png"></span>, or both.</li>
                     <li>The distance: either a number 1-5, or 1-3 dice.</li>
                 </ul>
                 <h2>Cards that move towers</h2>
@@ -324,7 +324,7 @@
                 <p>If a moved tower lands on ("imprisons") any wizards, including your own, you may fill one empty potion, which can be spent on spells.</p>
                 <h2>Cards that move wizards</h2>
                 <p>Move any of <b>your</b> wizards (except those imprisoned) ahead (clockwise) by the provided distance.</p>
-                <p>If a wizard lands exactly on the Ravenskeep, it enters the Ravenskeep. Whenever this happens, your turn ends immediately, so it is wise to do this last of all! This also causes the Ravenskeep to move to the next unoccupied space with the raven emblem <span class='icon'><img class="player-wizard round" src="./birdglade.png"></span> on it.</p>
+                <p>If a wizard lands exactly on the Ravenskeep, it enters the Ravenskeep. Whenever this happens, your turn ends immediately, so it is wise to do this last of all! This also causes the Ravenskeep to move to the next unoccupied space with the raven emblem <span class='icon'><img class="player-wizard round" src="assets/birdglade.png"></span> on it.</p>
                 <h2>Cards that move either</h2>
                 <p>Cards with both the tower and the wizard symbol can be used to move either a tower or a wizard by the same rules above.</p>
                 <h2>Cards with dice</h2>
@@ -529,7 +529,7 @@ const cardTemplate = (card, isFlipped = false) => {
                                     action.targetIsWizard ? {
                                         tag: 'img',
                                         classList: ['wizard'],
-                                        src: `./wizards/generic.png`,
+                                        src: `./assets/wizards/generic.png`,
                                     } : '🏯', 
                                     typeof action.amount == 'number' ? `${action.amount}` : action.amount.dice == 3 ? {
                                         tag: 'span',
@@ -562,13 +562,13 @@ initializeCards()
 // #region spellstuff
 
 const SPELLS = [
-    {id: 0, name: 'Advance wizard', icon: [{tag: 'img', src: './wizards/generic.png'}, '➡️'], price: 2, action: () => SecondaryTurnActions.MOVE_WIZARD_BY(1, 'spell', 2), description: 'Move any wizard -- not just your own -- ahead by 1 space.', in: true},
-    {id: 1, name: 'Headwind wizard', icon: [{tag: 'img', src: './wizards/generic.png'}, '⬅️'], price: 2, action: () => SecondaryTurnActions.MOVE_WIZARD_BY(-1, 'spell', 2), description: 'Move any wizard -- not just your own -- back by 1 space.', in: true},
+    {id: 0, name: 'Advance wizard', icon: [{tag: 'img', src: './assets/wizards/generic.png'}, '➡️'], price: 2, action: () => SecondaryTurnActions.MOVE_WIZARD_BY(1, 'spell', 2), description: 'Move any wizard -- not just your own -- ahead by 1 space.', in: true},
+    {id: 1, name: 'Headwind wizard', icon: [{tag: 'img', src: './assets/wizards/generic.png'}, '⬅️'], price: 2, action: () => SecondaryTurnActions.MOVE_WIZARD_BY(-1, 'spell', 2), description: 'Move any wizard -- not just your own -- back by 1 space.', in: true},
     {id: 2, name: 'Advance tower', icon: ['🏯➡️'], price: 1, action: () => SecondaryTurnActions.MOVE_TOWER_BY(2, 'spell', 1), description: 'Move a tower ahead by 2 spaces.', in: true},
     {id: 3, name: 'Headwind tower', icon: ['🏯⬅️'], price: 1, action: () => SecondaryTurnActions.MOVE_TOWER_BY(-2, 'spell', 1), description: 'Move a tower back by 2 spaces.', in: true},
     {id: 4, name: 'Nudge ravenskeep', icon: ['⬛➡️'], price: 2, action: () => SpellActions.NUDGE_RAVENSKEEP(SPELLS[4].price), description: 'Move the Ravenskeep to the next unoccupied space.', in: false},
-    {id: 5, name: 'Free wizard', icon: [{tag: 'img', src: './wizards/generic.png'}, '⬆️'], price: 1, action: () => SpellActions.FREE_WIZARD(SPELLS[5].price), description: 'Peek under a tower. If one of your wizards is there, move it to the top of the tower.', in: false},
-    {id: 6, name: 'Fill potion', icon: [{tag: 'img', src: './potions/generic.png'}, '↩️'], price: 2, action: () => SpellActions.FILL_POTION(SPELLS[6].price), description: 'Spend two full potions to fill a third.', in: false, condition: () => { return getPlayerById(actingPlayer.id).potions.empty > 0 }},
+    {id: 5, name: 'Free wizard', icon: [{tag: 'img', src: './assets/wizards/generic.png'}, '⬆️'], price: 1, action: () => SpellActions.FREE_WIZARD(SPELLS[5].price), description: 'Peek under a tower. If one of your wizards is there, move it to the top of the tower.', in: false},
+    {id: 6, name: 'Fill potion', icon: [{tag: 'img', src: './assets/potions/generic.png'}, '↩️'], price: 2, action: () => SpellActions.FILL_POTION(SPELLS[6].price), description: 'Spend two full potions to fill a third.', in: false, condition: () => { return getPlayerById(actingPlayer.id).potions.empty > 0 }},
 ]
 const spellDescriptorElementTemplate = (spell) => {
     return {
@@ -601,7 +601,7 @@ const spellBadgeElementTemplate = (spell) => {
             {
                 classList: ['spell-price'],
                 children: [...Array(spell.price)].map(() => {
-                    return {tag: 'img', src: './potions/generic.png'}
+                    return {tag: 'img', src: './assets/potions/generic.png'}
                 })
             }
         ]
