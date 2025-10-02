@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Wandering Towers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="styles.css"> 
+</head>
+<style>
+    body {
+        background: black;
+    }
+
+    #instructions .tower-td {
+        box-sizing: content-box;
+        width: var(--tower-top-size);
+        height: var(--tower-top-size);
+    }
+    #instructions .tower-wrapper {
+        transform: rotate3d(1,0,0,var(--tilt));
+    }
+    table {
+        border-collapse: collapse;
+    }
+    td {
+        padding: 1ch;
+        border: 1px solid white;
+    }
+    td:first-child {
+        text-align: center;
+    }
+    p, h1, h2 {
+        margin: 0.5em 0;
+    }
+    h1,h2 {
+        margin-top: 1em;
+    }
+    #instructions .icon {
+        font-size: large;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    #instructions .icon img {
+        font-size: small;
+        vertical-align: middle;
+    }
+    .round {
+        border-radius: 50%;
+    }
+    #spell-descriptions, #instructions {
+        display: flex;
+        flex-direction: column;
+        gap: 1ch;
+    }
+    #display {
+        display: flex;
+        flex-direction: column;
+    }
+    #instructions {
+        color: white;
+        flex-grow: 1;
+        height: 0;
+    }
+    #contents-wrapper {
+        overflow-y: auto;
+        flex-grow: 1;
+    }
+
+    p, li {
+        color: #fffe;
+    }
+
+    h1, h2, a, td {
+        color: white
+    }
+
+    #instructions .tower-wrapper {
+        cursor: default;
+    }
+
+    #display {
+        background: #1f1d1b;
+        height: 100dvh;
+    }
+
+    #contents-wrapper {
+        background: black;
+        padding: 5dvh 20%;
+        border-radius: 1ch;
+    }
+
+    #instructions {
+        align-items: center;
+        padding: 1ch;
+        padding-top: 0;
+    }
+
+    #headings-wrapper {
+        width: 100%;
+        overflow: auto;
+        flex-shrink: 0;
+    }
+
+    #headings {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: fit-content;
+    }
+
+    #headings a {
+        padding: 0.5ch 1ch;
+        border-radius: 9999px;
+        white-space: nowrap;
+    }
+
+    #headings a:hover {
+        background: #fff2;
+    }
+
+    #cards-wrapper {
+        flex-shrink: 0;
+        padding: 1ch;
+    }
+    #cards-and-actions {
+        background: black;
+        padding: 1ch;
+        border-radius: 1ch;
+    }
+
+    .card {
+        display: inline-flex;
+        flex-direction:column;
+        width: 12ch;
+        height: 15ch;
+        text-align: center;
+        font-size: small;
+        overflow: hidden;
+        border-radius: 1ch;
+        padding: 1ch;
+        word-wrap: break-word;
+        vertical-align: middle;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at center, #fffa 0%, #fffa 50%, #0000 50.1%, #0000 100%) #bdb7a8;
+        cursor: pointer;
+    }
+
+    .card-icon {
+        font-size: large;
+        white-space: nowrap;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+    }
+
+    @keyframes cardtilt {
+        0% {transform: rotate(0deg);}
+        20% {transform: rotate(-10deg);}
+        55% {transform: rotate(7deg);}
+        80% {transform: rotate(-3deg);}
+        95% {transform: rotate(1deg);}
+    }
+
+    .card:hover {
+        animation: cardtilt 0.3s ease-in-out;
+    }
+
+    .card-icon .wizard {
+        font-size: normal;
+        width: 2ch;
+        height: 2ch;
+    }
+
+    .three-dice {
+        display: inline-block;
+        text-align: center;
+        font-size: small;
+    }
+
+    #cards-and-actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1ch;
+    }
+
+    #cards {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1ch;
+    }
+
+    #refresh, #hide {
+        font-size: x-large;
+        width: 4ch;
+        height: 4ch;
+        display: flex;
+        background: #1f1d1b;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+
+    #refresh, #hide {
+        cursor: pointer;
+    }
+
+    #refresh:hover, #hide:hover {
+        background: #2b2825;
+    }
+
+    .card-wrapper {
+        transform: translate3d(0,0,50ch);
+        transition: transform 0.4s ease-in-out;
+        width: fit-content;
+        height: fit-content;
+    }
+
+    .card-wrapper.flipped {
+        transform: translate3d(0,0,50ch) rotate3d(0,1,1,360deg)
+    }
+
+    .card-wrapper.backwards .card {
+        filter: grayscale(0.8) brightness(0.5);
+    }
+
+    .card-wrapper.backwards .card-icon {
+        opacity: 0;
+    }
+
+    #refresh.inactive {
+        filter: brightness(0.9);
+        cursor: default;
+    }
+</style>
+<body>
+    <div id="display">
+    <div id="cards-wrapper">
+        <div id="cards-and-actions">
+            <div id="hide" onclick="hide()">❌</div>
+            <div id="cards"></div>
+            <div id="refresh" onclick="refresh()">🔄</div>
+        </div>
+    </div>
+    <div id="instructions">
+        <div id="headings-wrapper">
+            <div id="headings">
+                <a class="heading" href="#basics">Basics</a>
+                <a class="heading" href="#using-cards">Using cards</a>
+                <a class="heading" href="#using-spells">Using spells</a>
+                <a class="heading" href="#ending-the-game">Ending the game</a>
+            </div>
+        </div>
+        <div id="contents-wrapper">
+            <div id="contents">
+                <p>Wandering Towers is a strategy game about wizards piloting magic ambulatory towers. This is the client-side page for the game, where individual players can view and refresh their own hands. Click <a href="server">here</a> to switch to the server-side page, where one player can operate the board via livestream or communal access.</p>
+                <h1 id="basics">Basics</h1>
+                <p>The board consists of sixteen tiles, some of which have some a tower on them, some of which have some wizards on them.</p>
+                <p>A glossary:</p>
+                <table id="glossary">
+                    <tbody>
+                        <tr>
+                            <td><img class="player-wizard" src="./wizards/generic.png"></td>
+                            <td>A wizard. (On the board, your wizards' outfits will be adjusted to your player color.)</td>
+                        </tr>
+                        <tr>
+                            <td class="tower-td">
+                                <div class='tower-wrapper'>
+                                    <div class='tower'>
+                                        <div class='tower-wall'></div>
+                                        <div class='tower-wall'></div>
+                                        <div class='tower-wall'></div>
+                                        <div class='tower-wall'></div>
+                                        <div class='tower-wall'></div>
+                                        <div class='tower-wall'></div>
+                                        <div class='tower-top'></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>A tower.</td>
+                        </tr>
+                        <tr>
+                            <td class="tower-td">
+                                <div class='tower-wrapper ravenskeep'>
+                                    <div class='tower'>
+                                        <div class='tower-wall'></div>
+                                        <div class='tower-wall'></div>
+                                        <div class='tower-wall'></div>
+                                        <div class='tower-wall'></div>
+                                        <div class='tower-wall'></div>
+                                        <div class='tower-wall'></div>
+                                        <div class='tower-top'></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>The Ravenskeep, a special tower.</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <img class="player-wizard round" src="./birdglade.png">
+                            </td>
+                            <td>The raven emblem.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p>On your turn, you must either:</p>
+                <ul><li>Use, and then immediately discard, two <a href="#using-cards">cards</a> from your hand.</li></ul>
+                <p>or:</p>
+                <ul><li>Discard all cards from your hand (<span style="display: inline-flex; border-radius: 1px; background: #222">❌</span>) and move any tower ahead (clockwise) by 1 space.</li></ul>
+                <p>You may also optionally cast one <a href="#using-spells">spell</a> at any time on your turn.</p>
+                <h1 id="using-cards">Using cards</h1>
+                <p>To use and discard a card, click the card above. Then, at the end of your turn, click <span style="display: inline-flex; border-radius: 1px; background: #222">🔄</span> to refill your hand.</p>
+                <p>On most turns, you will use two card actions. There are two parts to a card:</p>
+                <ul>
+                    <li>The target: either a tower <span class='icon'>🏯</span>, a wizard <span class='icon'><img class="player-wizard" src="./wizards/generic.png"></span>, or both.</li>
+                    <li>The distance: either a number 1-5, or 1-3 dice.</li>
+                </ul>
+                <h2>Cards that move towers</h2>
+                <p>Move any tower (not the ravenskeep) ahead (clockwise) by the provided distance. Towers moved onto other towers will stack, and you can later choose to move any tower of the stack. When moving a tower, everything on top of the tower moves with it. </p>
+                <p>You may not move towers which would land on top of the Ravenskeep!</p>
+                <p>If a moved tower lands on ("imprisons") any wizards, including your own, you may fill one empty potion, which can be spent on spells.</p>
+                <h2>Cards that move wizards</h2>
+                <p>Move any of <b>your</b> wizards (except those imprisoned) ahead (clockwise) by the provided distance.</p>
+                <p>If a wizard lands exactly on the Ravenskeep, it enters the Ravenskeep. Whenever this happens, your turn ends immediately, so it is wise to do this last of all! This also causes the Ravenskeep to move to the next unoccupied space with the raven emblem <span class='icon'><img class="player-wizard round" src="./birdglade.png"></span> on it.</p>
+                <h2>Cards that move either</h2>
+                <p>Cards with both the tower and the wizard symbol can be used to move either a tower or a wizard by the same rules above.</p>
+                <h2>Cards with dice</h2>
+                <p>When using a card with dice, you may roll a six-sided die and use the result as the distance. You may do as many successive rolls as there are dice on the card, but note that for each reroll, you forfeit all previous rolls (i.e. successive rolls are not added up.)</p>
+                <h1 id="using-spells">Using spells</h1>
+                <p>To use a spell, you must spend the number of full potions listed next to the spell (1 or 2.) Once spent, you cannot get potions back, so use spells cautiously!</p>
+                <p>To see which spells are in play, look in the top-left of the server-side view.</p>
+                <div id="spell-descriptions"></div>
+                <h1 id="ending-the-game">Ending the game</h1>
+                <p>Once any player has filled all of their potions <b>and</b> moved all of their wizards to the Ravenskeep, they have met the win conditions and triggered the end of the game. Play continues until the end of the round so that all players get an equal number of turns. After this, the game is over!</p>
+                <p>If only one player has met the win conditions, they have won the game!</p>
+                <p>If multiple players have met the win conditions, the winner is whoever spent the fewest potions. If there are multiple such players, they are tied for the win.</p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+
+// #region cardstuff
+
+const hide = () => {
+    const flippedCards = Array.from(document.querySelectorAll('.card-wrapper:not(.flipped)'))
+    flippedCards.forEach((card) => {
+        flipCard(card)
+    })
+}
+
+let nFlips = 0
+
+const refresh = () => {
+    if (!canRefresh) return
+    const flippedCards = Array.from(document.querySelectorAll('.card-wrapper.flipped'))
+    flippedCards.forEach((card) => {
+        const id = `flip-${nFlips++}`
+        card.replaceWith(displayElementTemplate({...cardTemplate(randomCard(), true), id: id}))
+        window.setTimeout(() => flipCard(document.getElementById(id)), 5)
+    })
+}
+
+const displayElementTemplate = (template) => {
+    if (typeof template == 'string') {
+        const textNode = document.createTextNode(template)
+        return textNode
+    }
+    const element = document.createElement(template.tag || 'div')
+    if (template.classList && template.classList.length > 0) {
+        for (const className of template.classList) {
+            element.classList.add(className)
+        }
+    }
+    if (template.id) {
+        element.id = template.id
+    }
+    if (template.style) {
+        element.setAttribute('style', template.style)
+    }
+    if (template.children && template.children.length > 0) {
+        element.replaceChildren(...template.children.map(displayElementTemplate))
+    }
+    for (const property in template) {
+        if (!['tag', 'id', 'style', 'classList', 'children'].includes(property)) {
+            element.setAttribute(property, template[property])
+        }
+    }
+    return element
+}
+    
+const CARDS = [[{targetIsWizard: true, amount: 1}],
+    [{targetIsWizard: true, amount: 1}],
+    [{targetIsWizard: true, amount: 1}],
+    [{targetIsWizard: true, amount: 1}],
+    [{targetIsWizard: true, amount: 2}],
+    [{targetIsWizard: true, amount: 2}],
+    [{targetIsWizard: true, amount: 2}],
+    [{targetIsWizard: true, amount: 2}],
+    [{targetIsWizard: true, amount: 3}],
+    [{targetIsWizard: true, amount: 3}],
+    [{targetIsWizard: true, amount: 3}],
+    [{targetIsWizard: true, amount: 3}],
+    [{targetIsWizard: true, amount: 4}],
+    [{targetIsWizard: true, amount: 4}],
+    [{targetIsWizard: true, amount: 4}],
+    [{targetIsWizard: true, amount: 4}],
+    [{targetIsWizard: true, amount: 5}],
+    [{targetIsWizard: true, amount: 5}],
+    [{targetIsWizard: true, amount: 5}],
+    [{targetIsWizard: true, amount: 5}],
+    [{targetIsWizard: true, amount: {dice: 2}}],
+    [{targetIsWizard: true, amount: {dice: 2}}],
+    [{targetIsWizard: true, amount: {dice: 2}}],
+    [{targetIsWizard: true, amount: {dice: 3}}],
+    [{targetIsWizard: false, amount: 1}],
+    [{targetIsWizard: false, amount: 1}],
+    [{targetIsWizard: false, amount: 1}],
+    [{targetIsWizard: false, amount: 1}],
+    [{targetIsWizard: false, amount: 2}],
+    [{targetIsWizard: false, amount: 2}],
+    [{targetIsWizard: false, amount: 2}],
+    [{targetIsWizard: false, amount: 2}],
+    [{targetIsWizard: false, amount: 3}],
+    [{targetIsWizard: false, amount: 3}],
+    [{targetIsWizard: false, amount: 3}],
+    [{targetIsWizard: false, amount: 3}],
+    [{targetIsWizard: false, amount: 4}],
+    [{targetIsWizard: false, amount: 4}],
+    [{targetIsWizard: false, amount: 4}],
+    [{targetIsWizard: false, amount: 4}],
+    [{targetIsWizard: false, amount: 5}],
+    [{targetIsWizard: false, amount: 5}],
+    [{targetIsWizard: false, amount: 5}],
+    [{targetIsWizard: false, amount: 5}],
+    [{targetIsWizard: false, amount: {dice: 2}}],
+    [{targetIsWizard: false, amount: {dice: 2}}],
+    [{targetIsWizard: false, amount: {dice: 2}}],
+    [{targetIsWizard: false, amount: {dice: 3}}],
+    [{targetIsWizard: true, amount: 1}, {targetIsWizard: false, amount: 1}],
+    [{targetIsWizard: true, amount: 1}, {targetIsWizard: false, amount: 1}],
+    [{targetIsWizard: true, amount: 1}, {targetIsWizard: false, amount: 1}],
+    [{targetIsWizard: true, amount: 1}, {targetIsWizard: false, amount: 5}],
+    [{targetIsWizard: true, amount: 1}, {targetIsWizard: false, amount: 5}],
+    [{targetIsWizard: true, amount: 1}, {targetIsWizard: false, amount: 5}],
+    [{targetIsWizard: true, amount: 1}, {targetIsWizard: false, amount: 5}],
+    [{targetIsWizard: true, amount: 1}, {targetIsWizard: false, amount: 5}],
+    [{targetIsWizard: true, amount: 1}, {targetIsWizard: false, amount: 5}],
+    [{targetIsWizard: true, amount: 2}, {targetIsWizard: false, amount: 2}],
+    [{targetIsWizard: true, amount: 2}, {targetIsWizard: false, amount: 2}],
+    [{targetIsWizard: true, amount: 2}, {targetIsWizard: false, amount: 2}],
+    [{targetIsWizard: true, amount: 2}, {targetIsWizard: false, amount: 4}],
+    [{targetIsWizard: true, amount: 2}, {targetIsWizard: false, amount: 4}],
+    [{targetIsWizard: true, amount: 2}, {targetIsWizard: false, amount: 4}],
+    [{targetIsWizard: true, amount: 2}, {targetIsWizard: false, amount: 4}],
+    [{targetIsWizard: true, amount: 2}, {targetIsWizard: false, amount: 4}],
+    [{targetIsWizard: true, amount: 2}, {targetIsWizard: false, amount: 4}],
+    [{targetIsWizard: true, amount: 3}, {targetIsWizard: false, amount: 3}],
+    [{targetIsWizard: true, amount: 3}, {targetIsWizard: false, amount: 3}],
+    [{targetIsWizard: true, amount: 3}, {targetIsWizard: false, amount: 3}],
+    [{targetIsWizard: true, amount: 4}, {targetIsWizard: false, amount: 2}],
+    [{targetIsWizard: true, amount: 4}, {targetIsWizard: false, amount: 2}],
+    [{targetIsWizard: true, amount: 4}, {targetIsWizard: false, amount: 2}],
+    [{targetIsWizard: true, amount: 4}, {targetIsWizard: false, amount: 2}],
+    [{targetIsWizard: true, amount: 4}, {targetIsWizard: false, amount: 2}],
+    [{targetIsWizard: true, amount: 4}, {targetIsWizard: false, amount: 2}],
+    [{targetIsWizard: true, amount: 4}, {targetIsWizard: false, amount: 4}],
+    [{targetIsWizard: true, amount: 4}, {targetIsWizard: false, amount: 4}],
+    [{targetIsWizard: true, amount: 4}, {targetIsWizard: false, amount: 4}],
+    [{targetIsWizard: true, amount: 5}, {targetIsWizard: false, amount: 1}],
+    [{targetIsWizard: true, amount: 5}, {targetIsWizard: false, amount: 1}],
+    [{targetIsWizard: true, amount: 5}, {targetIsWizard: false, amount: 1}],
+    [{targetIsWizard: true, amount: 5}, {targetIsWizard: false, amount: 1}],
+    [{targetIsWizard: true, amount: 5}, {targetIsWizard: false, amount: 1}],
+    [{targetIsWizard: true, amount: 5}, {targetIsWizard: false, amount: 1}],
+    [{targetIsWizard: true, amount: {dice: 1}}, {targetIsWizard: false, amount: {dice: 1}}],
+    [{targetIsWizard: true, amount: {dice: 1}}, {targetIsWizard: false, amount: {dice: 1}}],
+    [{targetIsWizard: true, amount: {dice: 1}}, {targetIsWizard: false, amount: {dice: 1}}],
+    [{targetIsWizard: true, amount: {dice: 1}}, {targetIsWizard: false, amount: {dice: 1}}],
+    [{targetIsWizard: true, amount: {dice: 1}}, {targetIsWizard: false, amount: {dice: 1}}],
+    [{targetIsWizard: true, amount: {dice: 1}}, {targetIsWizard: false, amount: {dice: 1}}]]
+
+let canRefresh = true
+
+const flipCard = (cardWrapper) => {
+    const flipped = cardWrapper.classList.contains('flipped')
+    document.getElementById('refresh').classList.add('inactive')
+    console.log(cardWrapper, flipped)
+    canRefresh = false
+    if (flipped) {
+        cardWrapper.classList.remove('flipped')
+        window.setTimeout(() => {
+            cardWrapper.classList.remove('backwards')
+        }, 200)
+        window.setTimeout(() => {
+            document.getElementById('refresh').classList.remove('inactive')
+            canRefresh = true
+        }, 400)
+    } else {
+        cardWrapper.classList.add('flipped')
+        window.setTimeout(() => {
+            cardWrapper.classList.add('backwards')
+        }, 200)
+        window.setTimeout(() => {
+            document.getElementById('refresh').classList.remove('inactive')
+            canRefresh = true
+        }, 400)
+    }
+}
+
+const cardTemplate = (card, isFlipped = false) => {
+    return {
+        classList: ['card-wrapper', ...(isFlipped ? ['flipped', 'backwards'] : [])],
+        onclick: 'flipCard(this)',
+        children: [
+            {
+                classList: ['card'],
+                children: [
+                    {
+                        classList: ['card-icons'],
+                        children: card.map((action, index) => {
+                            return {
+                                classList: ['card-icon'],
+                                children: [
+                                    action.targetIsWizard ? {
+                                        tag: 'img',
+                                        classList: ['wizard'],
+                                        src: `./wizards/generic.png`,
+                                    } : '🏯', 
+                                    typeof action.amount == 'number' ? `${action.amount}` : action.amount.dice == 3 ? {
+                                        tag: 'span',
+                                        classList: ['three-dice'],
+                                        children: ['🎲', {tag: 'br'}, '🎲🎲']
+                                    } : '🎲'.repeat(action.amount.dice)
+                                ]
+                            }
+                        })
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+const randomCard = () => {
+    return CARDS[Math.floor(Math.random() * CARDS.length)]
+}
+
+const initializeCards = () => {
+    const cards = [...Array(3)].map((x) => randomCard())
+    document.getElementById('cards').replaceChildren(...cards.map((card) => displayElementTemplate(cardTemplate(card))))
+}
+
+initializeCards()
+
+// #endregion
+
+// #region spellstuff
+
+const SPELLS = [
+    {id: 0, name: 'Advance wizard', icon: [{tag: 'img', src: './wizards/generic.png'}, '➡️'], price: 2, action: () => SecondaryTurnActions.MOVE_WIZARD_BY(1, 'spell', 2), description: 'Move any wizard -- not just your own -- ahead by 1 space.', in: true},
+    {id: 1, name: 'Headwind wizard', icon: [{tag: 'img', src: './wizards/generic.png'}, '⬅️'], price: 2, action: () => SecondaryTurnActions.MOVE_WIZARD_BY(-1, 'spell', 2), description: 'Move any wizard -- not just your own -- back by 1 space.', in: true},
+    {id: 2, name: 'Advance tower', icon: ['🏯➡️'], price: 1, action: () => SecondaryTurnActions.MOVE_TOWER_BY(2, 'spell', 1), description: 'Move a tower ahead by 2 spaces.', in: true},
+    {id: 3, name: 'Headwind tower', icon: ['🏯⬅️'], price: 1, action: () => SecondaryTurnActions.MOVE_TOWER_BY(-2, 'spell', 1), description: 'Move a tower back by 2 spaces.', in: true},
+    {id: 4, name: 'Nudge ravenskeep', icon: ['⬛➡️'], price: 2, action: () => SpellActions.NUDGE_RAVENSKEEP(SPELLS[4].price), description: 'Move the Ravenskeep to the next unoccupied space.', in: false},
+    {id: 5, name: 'Free wizard', icon: [{tag: 'img', src: './wizards/generic.png'}, '⬆️'], price: 1, action: () => SpellActions.FREE_WIZARD(SPELLS[5].price), description: 'Peek under a tower. If one of your wizards is there, move it to the top of the tower.', in: false},
+    {id: 6, name: 'Fill potion', icon: [{tag: 'img', src: './potions/generic.png'}, '↩️'], price: 2, action: () => SpellActions.FILL_POTION(SPELLS[6].price), description: 'Spend two full potions to fill a third.', in: false, condition: () => { return getPlayerById(actingPlayer.id).potions.empty > 0 }},
+]
+const spellDescriptorElementTemplate = (spell) => {
+    return {
+        classList: ['spell-descriptor'],
+        children: [
+            spellBadgeElementTemplate(spell),
+            {
+                classList: ['spell-info'],
+                children: [
+                    {
+                        classList: ['spell-name'],
+                        children: [spell.name]
+                    },
+                    {
+                        children: [spell.description]
+                    }
+                ]
+            }
+        ]
+    }
+}
+const spellBadgeElementTemplate = (spell) => {
+    return {
+        classList: ['spell-badge'],
+        children: [
+            {
+                classList: ['spell-icon'],
+                children: spell.icon
+            },
+            {
+                classList: ['spell-price'],
+                children: [...Array(spell.price)].map(() => {
+                    return {tag: 'img', src: './potions/generic.png'}
+                })
+            }
+        ]
+    }
+}
+
+document.getElementById('spell-descriptions').replaceChildren(...SPELLS.map((spell) => displayElementTemplate(spellDescriptorElementTemplate(spell))))
+
+// #endregion
+</script>

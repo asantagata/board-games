@@ -1,0 +1,3893 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Werewolf</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css">
+    <link href="https://algames.neocities.org/favicon.ico" rel="shortcut icon" type="image/ico">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+</head>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@500');
+    @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@700');
+
+    :root {
+        --player1: rgb(227, 66, 74);
+        --player2: rgb(80, 177, 80);
+        --player3: rgb(57, 164, 215);
+        --player4: rgb(214, 84, 164);
+        --player5: rgb(244, 195, 58);
+        --player6: rgb(69, 209, 179);
+        --player7: rgb(255, 123, 85);
+        --player8: rgb(147, 130, 247);
+        --player9: rgb(255, 60, 0);
+        --player10: rgb(138, 169, 201);
+        --player1-bg: rgb(26, 12, 12);
+        --player2-bg: rgb(11, 26, 11);
+        --player3-bg: rgb(10, 20, 25);
+        --player4-bg: rgb(19, 12, 19);
+        --player5-bg: rgb(21, 20, 12);
+        --player6-bg: rgb(10, 22, 20);
+        --player7-bg: rgb(25, 14, 11);
+        --player8-bg: rgb(11, 10, 20);
+        --player9-bg: rgb(28, 8, 0);
+        --player10-bg: rgb(15, 18, 22);
+        --villageteam-bg-dark: rgb(18, 51, 66);
+        --wolfteam-bg-dark: rgb(92, 35, 37);
+        --tannerteam-bg-dark: rgb(29, 71, 29);
+        --wolfteam-bg: rgb(180, 58, 74);
+        --tannerteam-bg: rgb(74, 140, 74);
+        --villageteam-bg: rgb(49, 93, 115);
+        --unknownteam-bg: #202021;
+        --villageteam: rgb(103, 166, 198); 
+        --wolfteam: rgb(238, 76, 84);
+        --tannerteam: rgb(113, 166, 113);
+        --sentryphase: var(--player5);
+        --doppyphase: var(--player6);
+        --seeyphase: var(--player7);
+        --swappyphase: var(--player4);
+        --twoppyphase: var(--player8);
+        --somnyphase: var(--player10);
+        --nonephase: rgb(217, 206, 234);
+        --cardborder: 3px;
+        --shield: var(--sentryphase);
+        --max-cards-per-row: 8;
+        --body-height: 65svh;
+        --body-width: 75vw;
+        --terminal-height: calc(100svh - var(--body-height));
+        --sidebar-width: calc(100vw - var(--body-width));
+        --player-new: var(--player4);
+    }
+
+    .wolfteam {color: var(--wolfteam);}
+    .villageteam {color: var(--villageteam);}
+    .tannerteam {color: var(--tannerteam);}
+    .sentryphase, .sentryphase *:not(.count) {color: var(--sentryphase);}
+    .doppyphase, .doppyphase *:not(.count) {color: var(--doppyphase);}
+    .seeyphase, .seeyphase *:not(.count) {color: var(--seeyphase);}
+    .swappyphase, .swappyphase *:not(.count) {color: var(--swappyphase);}
+    .twoppyphase, .twoppyphase *:not(.count) {color: var(--twoppyphase);}
+    .somnyphase, .somnyphase *:not(.count) {color: var(--somnyphase);}
+    .nonephase, .nonephase *:not(.count) {color: var(--nonephase);}
+
+    .player1, .player1 * {color: var(--player1);}
+    .player2, .player2 * {color: var(--player2);}
+    .player3, .player3 * {color: var(--player3);}
+    .player4, .player4 * {color: var(--player4);}
+    .player5, .player5 * {color: var(--player5);}
+    .player6, .player6 * {color: var(--player6);}
+    .player7, .player7 * {color: var(--player7);}
+    .player8, .player8 * {color: var(--player8);}
+    .player9, .player9 *, #error {color: var(--player9);}
+    .player10, .player10 * {color: var(--player10);}
+
+    .player-zone.player1 {background: var(--player1-bg); border-left: var(--cardborder) solid var(--player1)}
+    .player-zone.player2 {background: var(--player2-bg); border-left: var(--cardborder) solid var(--player2)}
+    .player-zone.player3 {background: var(--player3-bg); border-left: var(--cardborder) solid var(--player3)}
+    .player-zone.player4 {background: var(--player4-bg); border-left: var(--cardborder) solid var(--player4)}
+    .player-zone.player5 {background: var(--player5-bg); border-left: var(--cardborder) solid var(--player5)}
+    .player-zone.player6 {background: var(--player6-bg); border-left: var(--cardborder) solid var(--player6)}
+    .player-zone.player7 {background: var(--player7-bg); border-left: var(--cardborder) solid var(--player7)}
+    .player-zone.player8 {background: var(--player8-bg); border-left: var(--cardborder) solid var(--player8)}
+    .player-zone.player9 {background: var(--player9-bg); border-left: var(--cardborder) solid var(--player9)}
+    .player-zone.player10 {background: var(--player10-bg); border-left: var(--cardborder) solid var(--player10)}
+    #center-zone {background: rgb(15, 15, 15); border-left: var(--cardborder) solid rgb(202, 202, 202)}
+
+    * {
+        font-family: 'Inconsolata';
+        clear: both;
+        box-sizing: border-box;
+        color: white;
+        font-size: small;
+        user-select: none;
+    }
+
+    *:not(input) {
+        cursor: default;
+    }
+
+    body,html {
+        background: #000;
+        font-size: 16px;
+        margin: 0px;
+        padding: 0px;
+        width: 100%;
+        height: 100%;
+    }
+
+    .card {
+        background: #fff1;
+        display: inline-grid;
+        grid-template-rows: auto auto;
+        width: 12ch;
+        height: 15ch;
+        text-align: center;
+        font-size: small;
+        overflow: hidden;
+        padding: 1ch;
+        word-wrap: break-word;
+        vertical-align: middle;
+        transition: transform 0.1s;
+        cursor: pointer;
+        border-radius: 0.5ch;
+        border: var(--cardborder) solid #fff2;
+        margin-top: 1ch;
+    }
+
+    .card *, .artifact *, .shield * {
+        cursor: pointer;
+    }
+
+    .card:not(.unknown) {
+        padding-top: 1.5ch;
+    }
+
+    .card .card-title {
+        margin: 0;
+        font-size: small;
+    }
+
+    .card .card-icon {
+        font-size: xx-large;
+    }
+
+    .card.villageteam {
+        background: var(--villageteam-bg);
+    }
+
+    .card.wolfteam {
+        background: var(--wolfteam-bg);
+    }
+
+    .card.tannerteam {
+        background: var(--tannerteam-bg);
+    }
+
+    .card.unknown {
+        background: var(--unknownteam-bg);
+    }
+
+    .card.unknown:not(.shielded)::before, .card.unknown:not(.shielded)::after {
+        font-size: x-large;
+        color: #fff9;
+    }
+
+    .card.unknown:not(.shielded)::before {
+        text-align: right;
+        content: "?";
+    }
+
+    .card.unknown:not(.shielded)::after {
+        width: 100%;
+        text-align: left;
+        align-self: end;
+        content: "¿";
+    }
+    #template {
+        display: none;
+    }
+
+    .card:not(.rotating):hover {
+        animation: cardtilt 0.3s ease-in-out;
+    }
+
+    @keyframes cardtilt {
+        0% {transform: rotate(0deg);}
+        20% {transform: rotate(-10deg);}
+        55% {transform: rotate(7deg);}
+        80% {transform: rotate(-3deg);}
+        95% {transform: rotate(1deg);}
+    }
+
+    #tooltip {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        display: none;
+        border: 1px solid white;
+        background: #000d;
+        padding: 1ch;
+        width: max(22vw, 36ch);
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto auto auto;
+        z-index: 9993;
+    }
+    
+    #tooltip * {
+        font-size: small;
+    }
+
+    #tooltip > span {
+        padding: 1ch;
+    }
+
+    #tooltip > span:not(#tooltip-header1):not(#tooltip-header2):not(#tooltip-header) {
+        grid-column: 1 / 3;
+        border-top: 1px solid #fff8;
+    }
+
+    #tooltip > #tooltip-header{
+        grid-column: 1 / 3;
+        padding-top: 0px;
+    }
+
+    #tooltip > *:last-child {
+        padding-bottom: 0px;
+    }
+
+    #tooltip > #tooltip-header1 {
+        grid-column: 1 / 2;
+        border-right: 1px solid #fff8;
+        padding-top: 0px;
+    }
+
+    #tooltip > #tooltip-header2 {
+        grid-column: 2 / 3;
+        padding-top: 0px;
+    }
+
+    .artifact, .shield {
+        display: inline-flex;
+        align-items: center;
+        text-align: center;
+        cursor: pointer;
+        width: 4ch;
+        height: 4ch;
+        background: var(--villageteam-bg);
+        border-radius: 50%;
+        border: var(--cardborder) solid #fff2;
+        font-size: x-large;
+        overflow: hidden;
+        margin-top: 1ch;
+    }
+
+    .artifact.unknown {
+        background: var(--unknownteam-bg)
+    }
+
+    .artifact.unknown > .artifact-icon {
+        color: #fff9;
+    }
+
+    .artifact-icon, .shield-icon {
+        font-size: x-large;
+        width: 100%;
+        padding-bottom: 0.15em;
+    }
+
+    .artifact:not(.pip):hover, .shield:hover {
+        animation: cardtilt 0.3s ease-in-out;
+    }
+
+    .shield {
+        background: var(--shield);
+    }
+
+    #configs-container {
+        width: var(--body-width);
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: var(--body-height);
+        overflow-y: auto;
+    }
+
+    #configs {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        padding-bottom: 2ch;
+    }
+
+    #card-list > .card.villageteam, #artifact-list > .artifact {background: var(--villageteam-bg-dark);}
+    #card-list > .card.wolfteam, #artifact-list > .artifact.wolfteam {background: var(--wolfteam-bg-dark);}
+    #card-list > .card.tannerteam, #artifact-list > .artifact.tannerteam {background: var(--tannerteam-bg-dark);}
+    #card-list > .card.villageteam.selected, #artifact-list > .artifact.selected, .card.villageteam {background: var(--villageteam-bg);}
+    #card-list > .card.wolfteam.selected, .card.wolfteam, #artifact-list > .artifact.wolfteam.selected, .artifact.wolfteam {background: var(--wolfteam-bg);}
+    #card-list > .card.tannerteam.selected, .card.tannerteam, #artifact-list > .artifact.tannerteam.selected, .artifact.tannerteam {background: var(--tannerteam-bg);}
+    #card-list > .card.villageteam:hover, #artifact-list > .artifact:hover, .card.villageteam:hover, .artifact.villageteam:not(.pip):hover {background: var(--villageteam);}
+    #card-list > .card.wolfteam:hover, .card.wolfteam:hover, #artifact-list > .artifact.wolfteam:hover, .artifact.wolfteam:not(.pip):hover {background: var(--wolfteam);}
+    #card-list > .card.tannerteam:hover, .card.tannerteam:hover, #artifact-list > .artifact.tannerteam:hover, .artifact.tannerteam:not(.pip):hover {background: var(--tannerteam);}
+    #card-list, #artifact-list, #shield-list {
+        font-size: small;
+        max-width: calc(13ch * var(--max-cards-per-row));
+    }
+
+    #artifact-list, #shield-list {
+        display: none;
+    }
+
+    #card-configs {
+        border-left: 1px solid #fff7;
+        padding: 1ch;
+    }
+
+    #sidebar {
+        width: var(--sidebar-width);
+        min-height: 100%;
+        position: fixed;
+        right: 0;
+        top: 0;
+        background: #242426;
+    }
+
+    #order {
+        display: grid;
+        grid-template-columns: 2ch auto;
+        padding: 1ch;
+    }
+
+    .role-in-phase, .role-in-text {
+        text-decoration:underline;
+        text-decoration-style: dotted;
+    }
+
+    ul {
+        margin: 0;
+        padding-bottom: 1em;
+        padding-left: 2ch;
+    }
+
+    .count, .count span, #include-doppy, #include-doppy * {
+        color: #fffc;
+    }
+
+    #order-container {
+        padding: 1ch;
+        height: var(--body-height);
+        overflow-y: auto;
+        background: linear-gradient(0deg, #171718, #242426)
+    }
+
+    #order * {
+        cursor: default;
+    }
+
+    .header {
+        font-weight: bold;
+        font-size: medium;
+    }
+
+    p {
+        margin: 0;
+    }
+
+    #player-configs {
+        padding: 1ch;
+        min-width: min(20vw, 20ch);
+        overflow-x: auto;
+    }
+
+    #player-list-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    #player-list {
+        display: grid;
+        min-width: 30ch;
+        grid-template-columns: 4ch auto auto;
+        align-items: center;
+    }
+
+    input[type=number], input[type=text]{
+        background: #2a2a2c;
+        outline: none;
+        margin: 0px;
+        border: 0px;
+        padding: 0.5ch;
+    }
+
+    input[type=number] {
+        padding-right: 0;
+        width: min(10ch, 90%);
+    }
+
+    .player-name {
+        padding-right: 2ch;
+    }
+
+    #player-list-header {
+        grid-column: 3 / 4;
+    }
+
+    #add-player {
+        margin-top: 0.5ch;
+        text-decoration: underline;
+        cursor: pointer;
+        text-align: center;
+        width: 100%;
+        transition: background 0.5s ease-in-out;
+        padding: 0.5ch 0;
+        margin-bottom: 3ch;
+    }
+
+    #add-player:hover {
+        background: var(--player-new);
+    }
+
+    .player-destroy {
+        cursor: pointer;
+    }
+
+    input:read-only::-webkit-outer-spin-button, input:read-only::-webkit-inner-spin-button {
+        display: none;
+        margin: 0;
+    }
+
+    input[type=number]:read-only {
+        appearance: textfield;
+        filter: opacity(0.8) grayscale(0.3);
+        cursor: default;
+        pointer-events: none;
+    }
+
+    .player-center-title {
+        grid-column: 1 / 3;
+        padding-left: 1ch;
+    }
+
+    .player-number {
+        width: 100%;
+        text-align: right;
+        padding-right: 1ch;
+    }
+
+    .player-number, .player-center-title, #player-list-header {
+        padding-bottom: 1ch;
+        padding-top: 1ch;
+    }
+
+    .player-count {
+        white-space: nowrap;
+    }
+
+    #terminal-container {
+        width: var(--body-width);
+        height: var(--terminal-height);
+        bottom: 0;
+        left: 0;
+        position: fixed;
+        background: #1c1c1e;
+    }
+
+    #terminal-container, #terminal {
+        padding: 1ch;
+    }
+
+    #terminal {
+        width: 100%;
+        min-height: 100%;
+        padding-bottom: 2ch;
+    }
+
+    #terminal-box {
+        width: 100%;
+        height: 100%;
+        background: black;
+        overflow-y: auto;
+    }
+
+    #terminal *:not(.card, .card *, .artifact, .artifact *, .shield, .shield *, #error, .small-parenthetical *, .small-parenthetical) {
+        font-size: medium;
+    }
+
+    .transmission-container {
+        display: grid;
+        grid-template-columns: 2ch calc(100% - 2ch);
+        align-items: center;
+    }
+
+    .transmission-container:not(:last-child) {
+        padding-bottom: 1ch;
+        border-bottom: 1px solid #fff4;
+    }
+
+    .transmission-container:not(:first-child) {
+        padding-top: 1ch;
+    }
+
+    .transmission-container::before {
+        content: ">";
+        grid-column: 1 / 2;
+        color: #fffc;
+    }
+
+    .transmission {
+        grid-column: 2 / 3;
+    }
+
+    .button {
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    .button:hover {
+        color: white;
+    }
+
+    #copied-notif {
+        display: none;
+        opacity: 0;
+    }
+
+    @keyframes cardtilt-fade {
+        0% {transform: rotate(0deg)}
+        10% {opacity: 1}
+        15% {transform: rotate(-2deg)}
+        35% {transform: rotate(2deg)}
+        50% {transform: rotate(-1deg)}
+        80% {transform: rotate(0deg); opacity: 1}
+        95% {opacity: 0}
+    }
+
+    input[type=text]:read-only {
+        appearance: textfield;
+        filter: opacity(0.8) grayscale(0.3);
+        cursor: default;
+        pointer-events: none;
+    }
+
+    #error {
+        font-size: small;
+    }
+
+    #complete {
+        padding: 1ch;
+        width: 100%;
+        height: var(--terminal-height);
+        display: grid;
+        align-items: center;
+        overflow-y: auto;
+    }
+
+    #complete-warning, #start-warning, #seed-warning {
+        background: var(--wolfteam-bg);
+        padding: 1ch;
+        text-align: center;
+    }
+
+    #start-button, #next-button {
+        padding: 1ch;
+        text-align: center;
+        cursor: pointer;
+    }
+
+    #next-button {
+        margin-top: 1ch;
+    }
+
+    #start-button {
+        display: none;
+        transition: background 0.3s ease-in-out;
+        font-size: x-large;
+    }
+
+    #complete-warning:hover, #start-warning:hover, #seed-warning:hover {
+        animation: cardtilt 0.3s ease-in-out
+    }
+
+    #complete-warning, #complete-warning *, #start-warning, #seed-warning {
+        font-size: medium;
+        cursor: not-allowed;
+    }
+
+    #before-start {
+        display: none;
+        padding: 1ch;
+    }
+
+    #before-start, #before-start *:not(#start-button) {
+        font-size: medium;
+    }
+
+    .card.shielded > span {
+        display: none;
+    }
+
+    .card.shielded::before {
+        content: '🛡️';
+        display: inline-grid;
+        align-items: center;
+        justify-self: center;
+        justify-items: center;
+        text-align: center;
+        cursor: pointer;
+        width: 4ch;
+        height: 4ch;
+        background: var(--shield);
+        border-radius: 50%;
+        border: var(--cardborder) solid #fff2;
+        font-size: x-large;
+        overflow: hidden;
+        margin-top: 1ch;
+    }
+
+    .card.shielded::after {
+        content: '';
+    }
+
+    #player-options {
+        display: none;
+        position: fixed;
+    }
+
+    #player-selector {
+        display: inline-block;
+        background: #303031;
+        border-width: 0;
+        border-bottom: 1px;
+        border-style: solid;
+        min-width: 15ch;
+    }
+
+    #player-selector:hover {
+        background: #373738;
+    }
+
+    #selected-player {
+        width: 100%;
+        display: grid;
+        grid-template-columns: auto auto;
+        padding: 0.5ch;
+        font-size: small;
+        word-wrap: anywhere;
+        transition: color 0.3s ease-in-out;
+    }
+
+    #selected-player::after {
+        content: '∨';
+        font-size: small;
+        font-weight: bold;
+        display: inline-block;
+        padding-left: 1ch;
+        text-align: right;
+        width: auto;
+        color: white;
+    }
+
+    #player-options {
+        background: #242426;
+        border: 1px solid #fff3;
+        border-bottom: 0;
+    }
+
+    .player-option {
+        display: block;
+        width: 100%;
+        text-align: right;
+        font-size: medium;
+        padding: 0.5ch;
+        border-bottom: 1px solid #fff3;
+    }
+
+    .player-option:hover {
+        background: #fff2;
+    }
+
+    #player-selector-container {
+        font-size: medium;
+        margin-bottom: 1ch;
+    }
+
+    #card-zone {
+        display: none;
+        min-height: 100%;
+        padding-bottom: 2ch;
+    }
+
+    #center-zone, .player-zone {
+        padding: 1ch;
+        margin: 1ch;
+        margin-bottom: 0;
+        border-radius: 1ch;
+    }
+
+    .player-zone {
+        flex: 1 auto;
+    }
+
+    .card-selection, #artifact-selection {
+        text-align: center;
+    }
+
+    .zone-name {
+        font-size: medium;
+        word-wrap: anywhere;
+        text-align: center;
+    }
+
+    .player-row {
+        display: flex;
+        width: 100%;
+        align-content: stretch;
+        padding: 1ch;
+        padding-bottom: 0;
+    }
+
+    #entries {
+        display: none;
+    }
+
+    #entries * {
+        font-size: medium;
+    }
+
+    input[type=text].entry {
+        background: #121214;
+        width: 6ch;
+        text-align: center;
+        margin-top: 0.5ch;
+        border-bottom-width: 2px;
+        border-bottom-style: solid;
+    }
+
+    .entry-summary, .entry-summary * {
+        user-select: text; 
+        background: #1c1c1e;
+        cursor: text;
+    }
+
+    input[type=text]:read-only.entry {
+        background: #18181a;
+    }    
+
+    .entry-p {
+        margin-bottom: 0.5ch;
+    }
+
+    .artifact-shield-separator {
+        display: inline-block;
+        width: 5ch;
+        font-size: medium;
+    }
+
+    .continue-str {
+        display: inline-block;
+        width: 100%;
+        text-align: right;
+        grid-column: 1 / 3;
+        padding-right: 2ch;
+        margin-top: 1ch;
+    }
+
+    .continue-str, .continue-link {
+        color: #ddd;
+    }
+
+    .continue-link {
+        cursor: pointer;
+    }
+
+    .transmission .shield {
+        margin: 0;
+    }
+
+    .inactive-card-zone {
+        filter: grayscale(0.4);
+    }
+
+    .inactive-card-zone .card, .inactive-card-zone .artifact, .inactive-card-zone .shield, .inactive-card-zone .shield *, .inactive-card-zone .card.shielded::before {
+        cursor: default;
+    }
+
+    #next-button {
+        background: #ececff20;
+        cursor: default;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    #turning {
+        display: inline-block;
+    }
+
+    .card .card-title {
+        color: #fff;
+    }
+
+    .terminal-option, .terminaled-option {
+        display: inline-block;
+        margin-top: 0.5ch;
+    }
+
+    .terminaled-option {
+        color: #fffa;
+    }
+
+    .terminal-option, .terminal-option * {
+        cursor: pointer;
+    }
+
+    .select-player {
+        font-weight: bold;
+        cursor: pointer;
+        display: none;
+    }
+
+    .artifact-spot .artifact, .transmission .artifact {
+        margin-top: 0;
+    }
+
+    #down-button, #up-button {
+        display: none;
+        border-radius: 100%;
+        font-weight: bold;
+        position: fixed;
+        background: #1c1c1e;
+        text-align: center;
+        clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
+        cursor: pointer;
+        left: calc(var(--body-width) / 2);
+        transform: translateY(50%) translateX(-50%);
+        z-index: 9990;
+    }
+
+    #down-button, #up-button div {
+        width: 4ch;
+        height: 4ch;
+        font-size: x-large;
+        padding: 1ch;
+        padding-top: 0;
+        cursor: pointer;
+    }
+
+    #down-button {
+        bottom: var(--terminal-height);
+    }
+
+    #up-button {
+        bottom: 1ch;
+        font-size: small;
+    }
+
+    #down-button:hover, #up-button:hover {
+        background: linear-gradient(0deg, #1c1c1e, #222224)
+    }
+
+    #down-button::before {
+        content: '∨';
+    }
+
+    #up-button div::before {
+        content: '∧'
+    }
+
+    #down-button::before, #up-button div::before {
+        font-size: medium;
+    }
+
+    #bottom-row {
+        display: none;
+        background: #1c1c1e;
+        height: 1ch;
+        width: var(--body-width);
+        position: fixed;
+        bottom: 0;
+        left: 0;
+    }
+
+    #pips {
+        height: auto;
+        width: var(--body-width);
+        display: none;
+        padding-top: 4ch;
+        padding-left: 1ch;
+    }
+
+    .pip {
+        margin-top: 0;
+    }
+
+    .greypip {
+        filter: grayscale(1);
+    }
+
+    .pip, .pip * {
+        cursor: move;
+    }
+
+    #entries .entry-savetext, #entries .entry-buttons, #entries .entry-savetext *, #entries .entry-buttons * {
+        font-size: small;
+    }
+
+    .entry-savetext {
+        margin-top: 2ch;
+    }
+
+    .entry-buttons, .entry-savetext, #entry-savetext {
+        text-align: right;
+    }
+
+    .entry-buttons span {
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    #timer {
+        font-size: small;
+        margin-top: 1ch;
+        transition: color 1s;
+    }
+
+    #timer-container {
+        display: grid;
+        align-content: end;
+    }
+
+    #post-button-grid {
+        display: grid;
+        grid-template-columns: auto auto;
+    }
+
+    #entry-savetext {
+        background: #121214;
+    }
+
+    #what {
+        text-decoration: underline dotted;
+        cursor: pointer;
+    }
+
+    #everything-fades {
+        width: 100vw;
+        height: 100vh;
+        z-index: 9991;
+        opacity: 0;
+        background: #0008;
+        position: fixed;
+        display: none;
+        transition: opacity 0.4s;
+        grid-template-rows: 15vh auto 15vh;
+        grid-template-columns: 15vh auto 15vh;
+    }
+
+    #clarity {
+        opacity: 0;
+        padding: 2ch;
+        border-radius: 2ch;
+        grid-row: 2 / 3;
+        grid-column: 2 / 3;
+        border: 0.5ch solid #fff8;
+        display: none;
+        background: black;
+        z-index: 9992;
+        transition: opacity 0.4s;
+        overflow-y: auto;
+    }
+
+    #clarity p:not(.header) {
+        padding-left: 2ch;
+    }
+
+    #clarity .header, #clarity .header * {
+        font-size: large;
+    }
+
+    #clarity .header .open-button {
+        font-size: small;
+        font-weight: normal;
+        margin-bottom: 2ch;
+        cursor: pointer;
+        user-select: none;
+        display: inline-block;
+    }
+
+    #clarity * {
+        font-size: medium;
+    }
+
+    #clarity p:not(.header) {
+        margin-bottom: 2ch;
+    }
+
+    #clarity * {
+        cursor: auto;
+        user-select: text;
+    }
+
+    #clarity a {
+        cursor: pointer;
+        font-style: italic;
+        text-decoration: underline;
+    }
+
+    #clarity section {
+        margin-left: 2ch;
+    }
+
+    .leftbar {
+        border-left: 2px solid #fff9;
+    }
+
+    .headlet {
+        margin-left: 1ch;
+    }
+
+    img {
+        width: 70%;
+        height: 70%;
+        border: 2px solid #fff5;
+        border-radius: 1ch;
+    }
+
+    #cat-container {
+        text-align: center;
+        padding-bottom: 1ch;
+        font-size: x-large;
+        height: 4ch;
+    }
+
+    #cat, #cat * {
+        font-size: x-large;
+        cursor: move;
+        user-select: none;
+    }
+
+    #cat {
+        background: rgb(79, 71, 195);
+        z-index: 9999;
+    }
+
+    .pip-container {
+        display: inline-block;
+        margin-bottom: 1ch;
+    }
+
+    #wait-time-p {
+        display: none;
+    }
+
+    .wait-time-input {
+        width: 6ch;
+    }
+
+    #terminal .small-parenthetical, #terminal .small-parenthetical * {
+        font-size: small;
+    }
+
+    #other-configs {
+        display: grid;
+        grid-template-columns: 5ch auto;
+        align-items: end;
+    }
+
+    .jiggling {
+        animation: cardtilt 0.3s ease-in-out;
+    }
+
+    #other-configs > * {
+        margin-bottom: 1ch;
+    }
+
+    #shield-list-2 {
+        display: none;
+    }
+</style>
+<body onload="configureRoles()" onclick="hidePlayerOptions()" onresize="hidePlayerOptions()">
+    <div id="tooltip"></div>
+    <div id="everything-fades" onclick="nuclarity()">
+        <div id="clarity" onclick="noNuclarity()">
+            <div>
+                <p class="header">What is <i>One Night Ultimate Werewolf?</i></p>
+                <p><a href="https://beziergames.com/products/one-night-ultimate-werewolf" target="_blank">One Night Ultimate Werewolf</a> (<i>ONUW</i>) and the <a href="https://beziergames.com/products/daybreak" target="_blank">Daybreak</a> expansion are social-deduction card games published by Bézier Games. Due to circumstances outside of my control, I became addicted to these games on an island in 2024. They might be the greatest games ever created, but I'm not a scientist.</p>
+                <p class="header">What is this?</p>
+                <p>This is a virtual web client I made to play a minor variation on <i>ONUW</i> with college and online friends, who don't need to read this preamble because either they already know or I'm about to explain it to them. I mean, I won't stop them, but they don't need to.</p>
+                <p class="header">How do I play <i>ONUW</i> (traditionally)?<br><span id="open-button1" class="open-button" onclick="openAnswer(document.getElementById('answer1'), document.getElementById('open-button1'))">[open long answer]</span></p>
+                <div id="answer1" style="display: none">
+                    <p>It's based on the social deduction game <a href="https://en.wikipedia.org/wiki/Werewolf_(social_deduction_game)" target="_blank">Werewolf</a> with the notable exception that it takes place over one in-game night, hence the title. And the subsequent day, also. Also there are more than two or three roles, and their individual actions are much more involved, so incriminating a player is more complicated than saying "hey, I heard Tommy shuffling around when the moderator said 'werewolves.'" Also there's no moderator. But there is a <span class="role-in-text" style="cursor: default" onclick="showCardTooltip(this, werewolf.ID);" onmouseenter="showCardTooltip(this, werewolf.ID)">Werewolf</span>.</p>
+                    <section class="leftbar">
+                        <b class="headlet">Setup</b>
+                        <p>For a game of <i>N</i> players, <i>N+3</i> cards are selected. The cards are shuffled and distributed: one to each player, the remaining three face-down in the center. Everyone looks at their role in secret, then places it face-down in front of them and closes their eyes.</p>
+                        <b class="headlet">Night</b>
+                        <p>A voiceover from an app or an experienced player commands each role individually to open their eyes, perform a certain action, and close their eyes again. Some roles will be in the center rather than in front of a player, so not all roles will have their corresponding action performed. As instructed, players might view other cards, swap cards around, or distribute other pieces such as artifacts.</p>
+                        <p>During the night phase, some cards will be swapped around, and players may learn that the card in front of them has changed. However, they will only ever perform the action corresponding to the role they started with. Each role's night action is described in the <span style="text-decoration: dotted underline; cursor: default" onmouseover="exampleTooltip(this)" onclick="exampleTooltip(this)">tooltip</span> in this client. Significantly, werewolves in this game do not kill other players at night.</p>
+                        <b class="headlet">Day</b>
+                        <p>After every role has performed their night action, everyone opens their eyes. Some cards will have been swapped around, so some players may have a different card in front of them than they fell asleep with. However, players do <i>not</i> get to check their new roles. Instead, everyone discusses the events of the night phase to semi-collaboratively attempt to reconstruct the true state of the board.</p>
+                        <p>No one player will have the full picture. Figuring out who you are is highly important, as each player's team alignment and therefore win condition is based around their role <i>at this time</i>. Maybe you were <span class="villageteam">innocent as hell</span> when you went to sleep, but some roles got switched around and now you're some <span class="wolfteam">evil lycanthrope</span>. And maybe you don't even know it!</p>
+                        <p>Anyone may lie, be honest, betray their team, be loyal, whatever they want. Total freedom, but you do have to be nice. The <span class="villageteam">village</span>, <span class="wolfteam">wolves</span>, and <span class="tannerteam">tanner</span> teams all have different objectives, and they will attempt to manipulate the discussion accordingly. Players have five minutes to come to a conclusion, and then everyone must vote.</p>
+                        <b class="headlet">Voting</b>
+                        <p>After five minutes have passed, everyone must simultaneously point at ("vote for") any player. Each player has exactly one vote, and it may go to anyone including themself. Whoever receives the most votes dies. If multiple players are tied, then all of them die, unless <i>all</i> players are tied (i.e., every player earned exactly one vote), in which case no one dies.</p>
+                        <b class="headlet">Win conditions</b>
+                        <p><span class="villageteam">Village</span> team: At least one <span class='wolfteam'>wolf</span> dies. If there are no <span class='wolfteam'>wolves</span>, no one dies.<br><span class="wolfteam">Wolves</span> team: No <span class='wolfteam'>wolves</span> die.<br><span class="tannerteam">Tanner</span> team: Die. (You, specifically, not another <span class="tannerteam">tanner</span>.)</p>
+                    </section>
+                    <p>And that is the end of a game of <i>ONUW</i>. One night. And the subsequent day.</p>
+                </div>
+                <p class="header">How do I play your <i>minor variation</i> on <i>ONUW?</i><br><span id="open-button2" class="open-button" onclick="openAnswer(document.getElementById('answer2'), document.getElementById('open-button2'))">[open long answer]</span></p>
+                <div id="answer2" style="display: none">
+                    <p>Well, hey, it's not just mine. Let's not discount Toadette and Malice and everybody. But it's the same as <i>ONUW</i>, except:</p>
+                    <section class="leftbar">
+                    <p>We don't do the "five minute time limit" thing. What's the rush?</p>
+                    <p>The number of cards per player can vary, and also may be inconsistent between players.</p>
+                    <section>
+                        <p><b>In the night phase</b>: players will wake up when any of their roles are called and perform the corresponding action. Descriptions of night actions within this client have been adapted around this idea, but function identically to standard <i>ONUW</i> in one-card-each games.</p>
+                        <p><b>In the day phase</b>: team is decided on a per-player basis rather than a per-role basis. Team alignment is decided based on the following hierarchy: <span class="tannerteam">tanner</span> overides <span class="wolfteam">wolf</span> overrides <span class="villageteam">village</span>. If the curator is in play, artifacts like <span class="role-in-text"><span style="cursor: default" onclick="showArtifactTooltip(this, cudgel.ID);" onmouseenter="showArtifactTooltip(this, cudgel.ID)">Cudgel&nbsp;of</span> <span style="cursor: default" onclick="showArtifactTooltip(this, cudgel.ID);" onmouseenter="showArtifactTooltip(this, cudgel.ID)">the&nbsp;Tanner</span></span> override team alignment. Win conditions follow from teams exactly as usual.</p>
+                    </section>
+                    <p>The number of cards in the center can vary.</p>
+                    <section>
+                        <p>With this, the <span class="role-in-text" style="cursor: default" onclick="showCardTooltip(this, seer.ID);" onmouseenter="showCardTooltip(this, seer.ID)">Seer</span> (who by default may view two cards in the center) can have her card-view-count altered.</p>
+                    </section>
+                    <p>The <span class="role-in-text" style="cursor: default" onclick="showCardTooltip(this, curator.ID);" onmouseenter="showCardTooltip(this, curator.ID)">Curator</span> and artifacts work a little different.</p>
+                    <section>
+                        <p>Optionally, we gave the <span class="role-in-text" style="cursor: default" onclick="showCardTooltip(this, curator.ID);" onmouseenter="showCardTooltip(this, curator.ID)">Curator</span> (who by default gives any player an artifact) the additional ability to reveal one un-given artifact in the center.</p>
+                        <p>The <span class="role-in-text" style="cursor: default" onclick="showCardTooltip(this, doppelganger.ID);" onmouseenter="showCardTooltip(this, doppelganger.ID)">Doppy</span>&#8209;<span class="role-in-text" style="cursor: default" onclick="showCardTooltip(this, curator.ID);" onmouseenter="showCardTooltip(this, curator.ID)">Curator</span> may then give the face-up artifact to any player, but it has to be face-down.</p>
+                        <p>The <span class="role-in-text" style="cursor: default" onclick="showArtifactTooltip(this, dagger.ID);" onmouseenter="showArtifactTooltip(this, dagger.ID)">Dagger of the Traitor</span> artifact inverts a player's win condition. (Usually, it just makes you want someone on your team to die, so this is synonymous for the <span class="wolfteam">wolves</span> team.)</p>
+                    </section></section>
+                    <p class="header">What's all this <span class="role-in-text" style="cursor: default" onclick="showCardTooltip(this, doppelganger.ID);" onmouseenter="showCardTooltip(this, doppelganger.ID)">Doppy</span> business?</p>
+                    <p>We use trochaic nicknames for most roles. 
+                        <span class="role-in-text" style="cursor: default" onclick="showCardTooltip(this, doppelganger.ID);" onmouseenter="showCardTooltip(this, doppelganger.ID)">Doppy</span>
+                        refers to the 
+                        <span class="role-in-text" style="cursor: default" onclick="showCardTooltip(this, doppelganger.ID);" onmouseenter="showCardTooltip(this, doppelganger.ID)">Doppelganger</span>, and
+                        <span class="role-in-text" style="cursor: default" onclick="showCardTooltip(this, doppelganger.ID);" onmouseenter="showCardTooltip(this, doppelganger.ID)">Doppy</span>&#8209;<span class="role-in-text" style="cursor: default" onclick="showCardTooltip(this, villager.ID);" onmouseenter="showCardTooltip(this, villager.ID)">Somebody</span> refers to a <span class="role-in-text" style="cursor: default" onclick="showCardTooltip(this, doppelganger.ID);" onmouseenter="showCardTooltip(this, doppelganger.ID)">Doppelganger</span> who has seen and become that <span class="role-in-text" style="cursor: default" onclick="showCardTooltip(this, villager.ID);" onmouseenter="showCardTooltip(this, villager.ID)">Somebody</span>.
+                    </p>
+                </div>
+                <p class="header">How do I use this client?<br><span id="open-button3" class="open-button" onclick="openAnswer(document.getElementById('answer3'), document.getElementById('open-button3'))">[open long answer]</span></p>
+                <div style="display: none" id="answer3">
+                    <p>This client is intended for use by 3-10 players communicating remotely, e.g. via Discord call. It relies on no network communication, instead depending on players to communicate small amounts of encoded information ("action encodings") at the end of each gameplay phase. The client emulates the setup and night phase, provides a board visual for the day phase, and emulates the voting phase.</p>
+                    <section class="leftbar">
+                        <b class="headlet">Setup</b>
+                        <p>Player data (names, card counts) are input on the left.</p>
+                        <p>A selection of cards and artifacts can be chosen (click to toggle) in the center panel. For the game to begin, the number of roles selected must equal the sum of all player card counts and the center card count on the left.</p>
+                        <p>A random seed must be input in the bottom panel. This determines how the deck is shuffled and distributed, so it should be changed every game. This panel also includes options for generating and loading savedata. Savedata concisely represents all setup information. You can copy and send savedata to your group, and their clients will load in the exact setup information you are using.</p>
+                        <p><u>It is important that all players in a session are using identical setup information.</u> If your client thinks there are three players in play and mine thinks there are five, the roles will be distributed differently.</p>
+                        <p>Once everyone is ready to play, everyone should identify themselves in the bottom-right panel and click START.</p>
+                        <b class="headlet">Night</b>
+                        <p style="text-align: center"><img src="example night.png"><br><i style="opacity: 0.9">Example night.</i></p>
+                        <p>The night phase operates through a terminal at the bottom of the client. At the start of the night, each player receives a list of their cards in the same order that they appear face-down in the center panel. Players are given instructions for their roles through this terminal.</p>
+                        <p>The night phase is divided into up to six sub-phases: <span class="sentryphase">Sentry</span>, <span class="doppyphase">Doppy</span>, <span class="seeyphase">Seey</span>, <span class="swappyphase">Swappy</span>, <span class="somnyphase">Somny</span>, and <span class="twoppyphase">Twoppy</span>. At the end of each<sup>*</sup> sub-phase, players must collect and enter all action encodings from all other players in the bottom-right panel. This allows all players' actions to be replicated on all other players' clients. For instance, if I <span class="role-in-text" style="cursor: default" onclick="showCardTooltip(this, robber.ID);" onmouseenter="showCardTooltip(this, robber.ID)">Rob</span> your <span class="role-in-text" style="cursor: default" onclick="showCardTooltip(this, insomniac.ID);" onmouseenter="showCardTooltip(this, insomniac.ID)">Insomniac</span> during the <span class="swappyphase">Swappy</span> phase, the card will have been swapped on your client by the time you wake up to view it during the <span class="somnyphase">Somny</span> phase.</p>
+                        <p style="font-size: small"><sup>*</sup> If the <span class="role-in-text" style="cursor: default; font-size: small" onclick="showCardTooltip(this, pi.ID);" onmouseenter="showCardTooltip(this, pi.ID)">Paranormal Investigator</span> is not in play, there will be no action encodings to report for the <span style="font-size: small" class="seeyphase">Seey</span> phase.</p>
+                        <p>Once all action encodings are entered, players may proceed to the next sub-phase. After all sub-phases are complete, the night phase is over.</p>
+                        <b class="headlet">Day</b>
+                        <p>At the start of the Day phase, a button to lower the terminal (which contains all confidential night-action information) appears. Upon being pressed, draggable "pips" appear representing all roles in play. A player may choose to livestream their display and use these pips to facilitate discussion. (This creates a natural digital equivalent for the <span class="role-in-text" style="cursor: default" onclick="showArtifactTooltip(this, shroud.ID);" onmouseenter="showArtifactTooltip(this, shroud.ID)">Shroud&nbsp;of&nbsp;Shame</span>.) Pips can also be right-clicked to turn grey; you might use this to distinguish confirmed and skeptical claims.</p>
+                        <div id="cat-container"><span onmouseover="initializeCat()" id="cat" oncontextmenu="greyPip(this); return false" class="pip artifact"><span class="artifact-icon">🐈</span></span></div>
+                        <p style="margin-top: 2ch; text-align: center"><i style="opacity: 0.9">Please enjoy this customary example pip. (Try clicking and dragging...)</i></p>
+                        <b class="headlet">Voting</b>
+                        <p>Once all players are ready to vote, click "all players are ready to vote." Each player will be given voting options, which must be shared in the same manner as action encodings. The client tallies up the votes, determines who dies, and then provides the option to reveal all roles as of the end of the game.</p>
+                    </section>
+                </div>
+                <p class="header">The client is misbehaving! <span style="font-size: small; font-weight: normal">or:</span> I have some question or suggestion for this!</p>
+                <p>Hey, I'm sorry to hear that, first guy. This is still a pretty early project as of writing. You can click <a href="https://neocities.org/site/algames" target="_blank" style="font-style: normal">here</a> to visit the Neocities profile on which this client is stored, and you can leave me a comment there. Honestly though odds are if you're using this you know me, so you can just text me too.</p>
+            </div>
+        </div>
+    </div>
+    <section id="template">
+        <div id="template-transmission">
+            <div class="transmission-container">
+                <p class="transmission"></p>
+            </div>
+        </div>
+        <div id="template-player-list">
+            <span id="player4-list-header"><b>Roles</b> <span class="count">(<span id="player4-role-count">0</span> selected)</span></span>
+            <span class="player-center-title">Center</span>
+            <span class="player-count"><input id="center4-count-input" type=number value="3" min="1" oninput="handlePlayerUpdate()"></span><span class="player-number player1">1. </span>
+            <span class="player-name player1"><input class="name-input" type=text oninput="handlePlayerUpdate()"></span>
+            <span class="player-count player1"><input class="count-input" type=number value="1" min="1" oninput="handlePlayerUpdate()"></span><span class="player-number player2">2. </span>
+            <span class="player-name player2"><input class="name-input" type=text oninput="handlePlayerUpdate()"></span>
+            <span class="player-count player2"><input class="count-input" type=number value="1" min="1" oninput="handlePlayerUpdate()" readonly></span><span class="player-number player3">3. </span>
+            <span class="player-name player3"><input class="name-input" type=text oninput="handlePlayerUpdate()"></span>
+            <span class="player-count player3"><input class="count-input" type=number value="1" min="1" oninput="handlePlayerUpdate()" readonly></span>
+        </div>
+        <div id="template-player">
+            <span class="player-number player4">4. </span><span class="player-name player4"><input class="name-input" type=text oninput="handlePlayerUpdate()"></span>
+            <span class="player-count player4"><input class="count-input" type=number value="1" min="1" oninput="handlePlayerUpdate()"> <span class="player-destroy" onclick="destroyPlayer(this, childIndex(this.parentElement))">❌</span></span>
+        </div>
+        <div id="template-cards">
+            <span class="card villageteam" data-roleid="0" onclick="selectCard(this, 0, CHILD_INDEX); showCardTooltip(this, 0);" onmouseenter="showCardTooltip(this, 0)"><span class="card-icon">🤺</span><span class="card-title">sentinel</span></span>
+            <span class="card villageteam" data-roleid="1" onclick="selectCard(this, 1, CHILD_INDEX); showCardTooltip(this, 1);" onmouseenter="showCardTooltip(this, 1)"><span class="card-icon">👯</span><span class="card-title">doppel&shy;ganger</span></span>
+            <span class="card wolfteam" data-roleid="2" onclick="selectCard(this, 2, CHILD_INDEX); showCardTooltip(this, 2);" onmouseenter="showCardTooltip(this, 2)"><span class="card-icon">🐺</span><span class="card-title">werewolf</span></span>
+            <span class="card villageteam" data-roleid="3" onclick="selectCard(this, 3, CHILD_INDEX); showCardTooltip(this, 3);" onmouseenter="showCardTooltip(this, 3)"><span class="card-icon">🤼</span><span class="card-title">mason</span></span>
+            <span class="card villageteam" data-roleid="4" onclick="selectCard(this, 4, CHILD_INDEX); showCardTooltip(this, 4);" onmouseenter="showCardTooltip(this, 4)"><span class="card-icon">👀</span><span class="card-title">seer</span></span>
+            <span class="card villageteam" data-roleid="5" onclick="selectCard(this, 5, CHILD_INDEX); showCardTooltip(this, 5);" onmouseenter="showCardTooltip(this, 5)"><span class="card-icon">🕵️</span><span class="card-title">P.I.</span></span>
+            <span class="card villageteam" data-roleid="6" onclick="selectCard(this, 6, CHILD_INDEX); showCardTooltip(this, 6);" onmouseenter="showCardTooltip(this, 6)"><span class="card-icon">🤑</span><span class="card-title">robber</span></span>
+            <span class="card villageteam" data-roleid="7" onclick="selectCard(this, 7, CHILD_INDEX); showCardTooltip(this, 7);" onmouseenter="showCardTooltip(this, 7)"><span class="card-icon">🧙</span><span class="card-title">witch</span></span>
+            <span class="card villageteam" data-roleid="8" onclick="selectCard(this, 8, CHILD_INDEX); showCardTooltip(this, 8);" onmouseenter="showCardTooltip(this, 8)"><span class="card-icon">💃</span><span class="card-title">trouble&shy;maker</span></span>
+            <span class="card villageteam" data-roleid="9" onclick="selectCard(this, 9, CHILD_INDEX); showCardTooltip(this, 9);" onmouseenter="showCardTooltip(this, 9)"><span class="card-icon">👹</span><span class="card-title">village idiot</span></span>
+            <span class="card villageteam" data-roleid="10" onclick="selectCard(this, 10, CHILD_INDEX); showCardTooltip(this, 10);" onmouseenter="showCardTooltip(this, 10)"><span class="card-icon">🤷</span><span class="card-title">drunk</span></span>
+            <span class="card villageteam" data-roleid="11" onclick="selectCard(this, 11, CHILD_INDEX); showCardTooltip(this, 11);" onmouseenter="showCardTooltip(this, 11)"><span class="card-icon">😴</span><span class="card-title">insomniac</span></span>
+            <span class="card villageteam" data-roleid="12" onclick="selectCard(this, 12, CHILD_INDEX); showCardTooltip(this, 12);" onmouseenter="showCardTooltip(this, 12)"><span class="card-icon">🕴️</span><span class="card-title">revealer</span></span>
+            <span class="card villageteam" data-roleid="13" onclick="selectCard(this, 13, CHILD_INDEX); showCardTooltip(this, 13);" onmouseenter="showCardTooltip(this, 13)"><span class="card-icon">🎅</span><span class="card-title">curator</span></span>
+            <span class="card villageteam" data-roleid="14" onclick="selectCard(this, 14, CHILD_INDEX); showCardTooltip(this, 14);" onmouseenter="showCardTooltip(this, 14)"><span class="card-icon">🧍</span><span class="card-title">villager</span></span>
+            <span class="card tannerteam" data-roleid="15" onclick="selectCard(this, 15, CHILD_INDEX); showCardTooltip(this, 15);" onmouseenter="showCardTooltip(this, 15)"><span class="card-icon">🐿️</span><span class="card-title">tanner</span></span>
+        </div>
+        <span class="card unknown" id="card9" data-mine="ismine?" data-roleID="roleID?" data-shielded="0" data-center="iscenter?" data-ownerID="owner?" data-nth-child="n?" data-card-index="index?" onclick="selectCard(this, this.getAttribute('data-roleID'), this.getAttribute('data-nth-child'), this.getAttribute('data-ownerID'), this.getAttribute('data-card-index'))"></span>
+        <span class="card unknown shielded" data-shielded="1" data-roleID="PROTECTED_ROLE" onmouseenter="showArtifactTooltip(this, 7)" onclick="showArtifactTooltip(this, 7)"></span>
+        <div id="template-artifacts">
+            <span class="artifact villageteam" onclick="selectArtifact(this, 0, CHILD_INDEX); showArtifactTooltip(this, 0);" onmouseenter="showArtifactTooltip(this, 0)"><span class="artifact-icon">😶</span></span>
+            <span class="artifact villageteam" onclick="selectArtifact(this, 1, CHILD_INDEX); showArtifactTooltip(this, 1);" onmouseenter="showArtifactTooltip(this, 1)"><span class="artifact-icon">🥺</span></span>
+            <span class="artifact tannerteam" onclick="selectArtifact(this, 2, CHILD_INDEX); showArtifactTooltip(this, 2);" onmouseenter="showArtifactTooltip(this, 2)"><span class="artifact-icon">🔨</span></span>
+            <span class="artifact villageteam" onclick="selectArtifact(this, 3, CHILD_INDEX); showArtifactTooltip(this, 3);" onmouseenter="showArtifactTooltip(this, 3)"><span class="artifact-icon">🗡️</span></span>
+            <span class="artifact villageteam" onclick="selectArtifact(this, 4, CHILD_INDEX); showArtifactTooltip(this, 4);" onmouseenter="showArtifactTooltip(this, 4)"><span class="artifact-icon">🌌</span></span>
+            <span class="artifact wolfteam" onclick="selectArtifact(this, 5, CHILD_INDEX); showArtifactTooltip(this, 5);" onmouseenter="showArtifactTooltip(this, 5)"><span class="artifact-icon">🐾</span></span>
+            <span class="artifact villageteam" onclick="selectArtifact(this, 6, CHILD_INDEX); showArtifactTooltip(this, 6);" onmouseenter="showArtifactTooltip(this, 6)"><span class="artifact-icon">🧹</span></span>
+        </div>
+        <span class="artifact unknown" id="artifact9" data-artifactID="artifactid?" data-artifact-index="index?" onclick="selectArtifact(this, this.getAttribute('data-artifactID'), this.getAttribute('data-artifact-index'))"><span class="artifact-icon">?</span></span>
+        <span id="notifact">
+            <span class="artifact" style="opacity: 0; cursor: default"><span class="artifact-icon" style="cursor: default">?</span></span>
+        </span>
+        <span class="shield" onmouseenter="showArtifactTooltip(this, 7)" onclick="showArtifactTooltip(this, 7)"><span class="shield-icon">🛡️</span></span>
+        <div id="tooltip-card">
+            <span id="tooltipf-header1">
+                <span id="tooltipf-icon"></span>
+                <span id="tooltipf-name"></span>
+            </span>
+            <span id="tooltipf-header2"><b>Phase</b>: <span id="tooltipf-phase"></span> <span class="count">(<span id="tooltipf-phaseID"></span>)</span></span>
+            <span><b>Team</b>: <span id="tooltipf-team"></span></span>
+            <span><b>Win condition</b>: <span id="tooltipf-wincondition"></span></span>
+            <span><b>Night action</b>: <span id="tooltipf-action"></span></span>
+        </div>
+        <div id="tooltip-artifact">
+            <span id="tooltipv-header">
+                <span id="tooltipv-icon"></span><b> Artifact</b>:
+                <span id="tooltipv-name"></span>
+            </span>
+            <span><b>Effect</b>: <span id="tooltipv-action"></span></span>
+        </div>
+    </section>
+    <section id="configs-container">
+        <section id="card-zone"></section>
+        <section id="configs">
+            <section id="player-configs">
+                <p class="header">Select Players <span class="count">(<span id="player-count">3</span> selected)</span></p>
+                <div id="player-list-container">
+                    <div style="width: fit-content">
+                        <div id="player-list">
+                            <span id="player-list-header"><b>Roles</b> <span class="count">(<span id="player-role-count">0</span> selected)</span></span>
+                            <span class="player-center-title">Center</span>
+                            <span class="player-count"><input id="center-count-input" type=number value="3" min="1" oninput="handlePlayerUpdate()"></span><span class="player-number player1">1. </span>
+                            <span class="player-name player1"><input class="name-input" type=text oninput="handlePlayerUpdate()"></span>
+                            <span class="player-count player1"><input class="count-input" type=number value="1" min="1" oninput="handlePlayerUpdate()"></span><span class="player-number player2">2. </span>
+                            <span class="player-name player2"><input class="name-input" type=text oninput="handlePlayerUpdate()"></span>
+                            <span class="player-count player2"><input class="count-input" type=number value="1" min="1" oninput="handlePlayerUpdate()"></span><span class="player-number player3">3. </span>
+                            <span class="player-name player3"><input class="name-input" type=text oninput="handlePlayerUpdate()"></span>
+                            <span class="player-count player3"><input class="count-input" type=number value="1" min="1" oninput="handlePlayerUpdate()"></span>
+                        </div>
+                        <p id="add-player" onclick="addPlayer()">+ add player</p>
+                    </div>
+                </div>
+                <br>
+                <p class="header">Settings</p>
+                <div id="other-configs">
+                    <input type=checkbox oninput="handleSettingsUpdate()" checked>
+                    <span>Give all players the same number of cards</span>
+                    <input type=checkbox oninput="handleSettingsUpdate()" checked>
+                    <span>Use case-insensitive action encodings</span>
+                    <input type=checkbox oninput="handleSettingsUpdate()">
+                    <span><span class="role-in-text" onclick="showCardTooltip(this, curator.ID);" onmouseenter="showCardTooltip(this, curator.ID)">Curator</span> reveals one artifact</span>
+                    <p style="grid-column: 1 / 3"><span class="role-in-text" onclick="showCardTooltip(this, seer.ID);" onmouseenter="showCardTooltip(this, seer.ID)">Seer</span> views <input class="count-input" type=number value="2" min="1" oninput="handleSettingsUpdate()"> card<span id="seer-s">s</span> in the center</p>
+                    <input type=checkbox oninput="handleSettingsUpdate()">
+                    <span>Show timer during night phases</span>
+                    <p style="grid-column: 2 / 3" id="wait-time-p"><input class="count-input" type=number value="5" min="1" oninput="handleSettingsUpdate()"><span class="role-in-text" onmouseover="timeTip(this)" onclick="timeTip(this)">&nbsp;×&nbsp;N&nbsp;+&nbsp;</span><input class="count-input" type=number value="10" min="1" oninput="handleSettingsUpdate()"> seconds</p>
+                </div>
+                <br>
+                <p><span class="header" id="what" onclick="clarity()">What is this?</span></p>
+            </section>
+            <section id="card-configs">
+                <p class="header">Select Roles <span class="count">(<span id="role-count">0</span> selected)</span></p>
+                <div id="card-list"></div>
+                <div id="artifact-list"></div>
+                <div id="shield-list"></div>
+            </section>
+        </section>
+    </section>
+    <section id="sidebar">
+        <section id="order-container">
+            <p class="header">Night Phase</p>
+            <p id="include-doppy" style="display: none"><input type="checkbox" checked="true" id="include-doppy-input" onclick="enforceIncludeDoppy()"> Display <span class="role-in-text" onclick="showCardTooltip(this, doppelganger.ID);" onmouseenter="showCardTooltip(this, doppelganger.ID)">Doppy</span>-roles</p>
+            <section id="order"></section>
+        </section>
+        <section id="complete">
+            <p id="complete-warning">Cannot start while player&#8209;side role count&nbsp;(<span id="player-side-role-count">6</span>) does not equal card&#8209;side role count&nbsp;(<span id="card-side-role-count">8</span>)!</p>
+            <p id="seed-warning">Cannot start with empty seed!</p>
+            <div id="before-start">
+                <p id="player-selector-container">Act as <span id="player-selector" onmouseenter="generatePlayerSelector()" onclick="summonPlayerSelector()"><span id="selected-player">none</span></span></p>
+                <p id="start-warning">Cannot start with none selected!</p>
+                <p id="start-button" onclick="start()">START</p>
+            </div>
+            <div id="entries"></div>
+        </section>
+    </section>
+    <section id="terminal-container">
+        <section id="terminal-box">
+            <section id="terminal">
+                <div class="transmission-container">
+                    <p class="transmission">Seed: <input type="text" id="seed" oninput="saveSeed()"> <span class="small-parenthetical">(<span class="button" onclick="randomSeed()">generate random</span>)</span></p>
+                </div>
+                <div class="transmission-container">
+                    <p class="transmission"><span class="button" onclick="document.getElementById('copy-save').value = saveText()">Generate</span> savedata: <span id="copy-save-container"><input type="text" id="copy-save" readonly></span> <span class="count" id="copy-button">(<span class="button" onclick="copySave()">Copy</span>)</span> <span id="copied-notif">✅ Copied</span></p>
+                </div>
+                <div class="transmission-container">
+                    <p class="transmission"><span class="button" onclick="pasteSave()">Paste</span> savedata: <input type="text" id="load-save" oninput="document.getElementById('error').innerHTML = ''"> <span class="count">(<span class="button" onclick="loadSave()">Load</span>)</span><br><span id="error"></span></p>
+                </div>
+            </section>
+        </section>
+    </section>
+    <div id="player-options"></div>
+    <div id="down-button" onclick="terminalDown()"></div>
+    <div id="bottom-row"></div>
+    <div id="up-button" onclick="terminalUp()"><div></div></div>
+</body>
+<script>
+    const pseudorands = [37414, 58064, 48739, 48914, 23645, 16561, 51565, 46324, 30836, 44813, 44706, 53774, 20976, 58326, 34398, 34451, 37428, 35517, 43849, 37072, 15215, 41843, 46634, 64276, 10639, 8110, 44861, 1007, 23558, 22089, 35095, 38241, 43997, 20578, 2485, 60233, 41574, 37326, 26967, 9601, 35252, 4703, 3141, 29075, 19218, 27679, 62928, 38426, 26546, 60178]
+    let hash = 0
+
+    const OTHER_PLAYER_CARD = 0, ANY_PLAYER_CARD = 1, CENTER_CARD = 2, ARTIFACT = 3, PLAYER = 4
+    const PHASE_ACTIVITY_OVER = -1, PROTECT = 0, BECOME = 1, SEEK_WOLVES = 2, VIEW_CARD = 3, SEEK_MASONS = 4, VIEW_CARD_AND_SHIFT = 5, VIEW_CENTER_AS_SEER = 6, PI_VIEW = 7, ROB = 8, ROB_VIEW = 9, DOPPY_ROB = 10, VIEW_DOPPY = 11, WITCH = 12, WITCH_VIEW = 13, TRUBBY_STORE = 14, TRUBBY_SWAP = 15, DRINK = 16, DOPPY_DRINK = 17, INSOMNIATE = 18, REVEAL = 19, UNREVEAL = 20, HAVE_ARTIFACT = 21, GIVE_ARTIFACT = 22, FLIP_ARTIFACT = 23, DOPPY_GIVE_ARTIFACT = 24, VIEW_MY_ARTIFACT = 25, HIDE_MY_ARTIFACT = 26, PROTECTED_AND_FAILED = 27
+
+    const tooltip = document.getElementById("tooltip")
+    const tooltipCard = document.getElementById("tooltip-card")
+    const tooltipArtifact = document.getElementById("tooltip-artifact")
+    const templateCards = document.getElementById("template-cards")
+    const templateArtifacts = document.getElementById("template-artifacts")
+    const cardList = document.getElementById("card-list")
+    const artifactList = document.getElementById("artifact-list")
+    const shieldList = document.getElementById("shield-list")
+    let shieldList2
+    const CHILD_INDEX = null
+    
+    const curatorBaselineAction = "The curator chooses an artifact token and places it in front of any player."
+    const curatorModifiedAction = " <i class=\"curator-flip\">They then flip over another artifact token.</i>"
+    const seerBaselineAction = "The seer views 2 card9 in the center or 1 card from another player."
+    const sentinel = {ID: 0, element: templateCards.children[0], name: "Sentinel", phase: 0, team: 0, action: "The sentinel uses a shield token to protect any other player's card from being viewed or moved in the night.", icon: "🤺", doppyPhase: 1, active: true}
+    const doppelganger = {ID: 1, element: templateCards.children[1], name: "Doppelganger", phase: 1, team: 0, action: "The doppelganger views one other player's card. She then becomes that role and (if applicable) performs its action.", icon: "👯", doppyPhase: 0, nickname: "Doppy", active: false}
+    const werewolf = {ID: 2, element: templateCards.children[2], name: "Werewolf", phase: 2, team: 1, action: "The werewolf looks for other <span class='wolfteam'>wolves</span>. If he is the only <span class='wolfteam'>wolf</span>, he may view one card in the center.", icon: "🐺", doppyPhase: 2, active: false}
+    const mason = {ID: 3, element: templateCards.children[3], name: "Mason", phase: 2, team: 0, action: "The mason looks for other masons.", icon: "🤼", doppyPhase: 2, active: false}
+    const seer = {ID: 4, element: templateCards.children[4], name: "Seer", phase: 2, team: 0, action: seerBaselineAction.replace("9", "s"), icon: "👀", doppyPhase: 1, active: false}
+    const pi = {ID: 5, element: templateCards.children[5], name: "Paranormal Investigator", phase: 2, team: 0, action: "The P.I. views up to two cards from other players. If he sees a role on the <span class='wolfteam'>wolf</span> or <span class='tannerteam'>tanner</span> team, he stops viewing and joins that team.", icon: "🕵️", doppyPhase: 1, active: true}
+    const robber = {ID: 6, element: templateCards.children[6], name: "Robber", phase: 3, team: 0, action: "The robber may swap this card with any other player's card, then look at his new role.", icon: "🤑", doppyPhase: 1, active: true}
+    const witch = {ID: 7, element: templateCards.children[7], name: "Witch", phase: 3, team: 0, action: "The witch may view one card in the center. If she does, she must swap it with any player's card.", icon: "🧙", doppyPhase: 1, active: true}
+    const troublemaker = {ID: 8, element: templateCards.children[8], name: "Troublemaker", phase: 3, team: 0, action: "The troublemaker may exchange one card between any other two players.", icon: "💃", doppyPhase: 1, active: true}
+    const vi = {ID: 9, element: templateCards.children[9], name: "Village Idiot", phase: 3, team: 0, action: "The village idiot moves all other players' cards to the left or to the right. (Protected cards are skipped.)", icon: "👹", doppyPhase: 1, active: true}
+    const drunk = {ID: 10, element: templateCards.children[10], name: "Drunk", phase: 3, team: 0, action: "The drunk swaps this card with one of the center cards, and does not look at his new role.", icon: "🤷", doppyPhase: 1, active: true}
+    const insomniac = {ID: 11, element: templateCards.children[11], name: "Insomniac", phase: 4, team: 0, action: "The insomniac views this card.", icon: "😴", doppyPhase: 5, active: false}
+    const revealer = {ID: 12, element: templateCards.children[12], name: "Revealer", phase: 4, team: 0, action: "The revealer views any other player's card. If the role he views is on the <span class='villageteam'>village</span> team, he leaves the card face-up.", icon: "🕴️", doppyPhase: 5, active: true}
+    const curator = {ID: 13, element: templateCards.children[13], name: "Curator", phase: 4, team: 0, action: curatorBaselineAction, icon: "🎅", doppyPhase: 5, active: true}
+    const villager = {ID: 14, element: templateCards.children[14], name: "Villager", phase: 6, team: 0, action: "None.", icon: "🧍", doppyPhase: 6, active: false}
+    const tanner = {ID: 15, element: templateCards.children[15], name: "Tanner", phase: 6, team: 2, action: "None.", icon: "🐿️", doppyPhase: 6, active: false}
+    // a role here is: {roleID: int, roleViewed?: int} (latter for doppy)
+    const sentryPhase = {ID: 0, publicID: 1, name: "<span class='sentryphase'>Sentry</span>", sidebarName: "<b class='phase-header sentryphase'>Sentry Phase</b>", class: "sentryphase", color: "var(--sentryphase)", activeRoles: [{roleID: sentinel.ID}]}
+    const doppyPhase = {ID: 1, publicID: 2, name: "<span class='doppyphase'>Doppy</span>", sidebarName: "<b class='phase-header doppyphase'>Doppy Phase</b>", class: "doppyphase", color: "var(--doppyphase)", activeRoles: [{roleID: doppelganger.ID, roleViewed: doppelganger.ID}, {roleID: doppelganger.ID, roleViewed: null}]}
+    const seeyPhase = {ID: 2, publicID: 3, name: "<span class='seeyphase'>Seey</span>", sidebarName: "<b class='phase-header seeyphase'>Seey Phase</b>", class: "seeyphase", color: "var(--seeyphase)", activeRoles: [{roleID: pi.ID}]}
+    const swappyPhase = {ID: 3, publicID: 4, name: "<span class='swappyphase'>Swappy</span>", sidebarName: "<b class='phase-header swappyphase'>Swappy Phase</b>", class: "swappyphase", color: "var(--swappyphase)", activeRoles: [{roleID: robber.ID}, {roleID: witch.ID}, {roleID: troublemaker.ID}, {roleID: vi.ID}, {roleID: drunk.ID}]}
+    const somnyPhase = {ID: 4, publicID: 5, name: "<span class='somnyphase'>Somny</span>", sidebarName: "<b class='phase-header somnyphase'>Somny Phase</b>", class: "somnyphase", color: "var(--somnyphase)", activeRoles: [{roleID: revealer.ID}, {roleID: curator.ID}]}
+    const twoppyPhase = {ID: 5, publicID: 6, name: "<span class='twoppyphase'>Twoppy</span>", sidebarName: "<b class='phase-header twoppyphase'>Twoppy Phase</b>", class: "twoppyphase", color: "var(--twoppyphase)", activeRoles: [{roleID: doppelganger.ID, roleViewed: null}]}
+    const nonePhase = {ID: 6, publicID: "-", name: "<span class='nonephase'>None</span>", sidebarName: "<b class='phase-header nonephase'>No action</b>", class: "nonephase", color: "var(--nonephase)"}
+    const phases = [sentryPhase, doppyPhase, seeyPhase, swappyPhase, somnyPhase, twoppyPhase, nonePhase]
+    const villageTeam = {ID: 0, element: templateCards.children[0], name: "<span class='villageteam'>Village</span>", winCondition: "At least one <span class='wolfteam'>wolf</span> dies. If there are no <span class='wolfteam'>wolves</span>, no one dies.", color: "var(--villageteam)"}
+    const wolfTeam = {ID: 1, element: templateCards.children[1], name: "<span class='wolfteam'>Wolves</span>", winCondition: "No <span class='wolfteam'>wolves</span> die.", color: "var(--wolfteam)"}
+    const tannerTeam = {ID: 2, element: templateCards.children[2], name: "<span class='tannerteam'>Tanner</span>", winCondition: "Die. (This invalidates all other win conditions.)", color: "var(--tannerteam)"}
+    const teams = [villageTeam, wolfTeam, tannerTeam]
+    const roles = [sentinel, doppelganger, werewolf, mason, seer, pi, robber, witch, troublemaker, vi, drunk, insomniac, revealer, curator, villager, tanner]
+    const mask = {ID: 0, element: templateArtifacts.children[0], name: "Mask of Muting", action: "You cannot speak this round!", icon: "😶"}
+    const shroud = {ID: 1, element: templateArtifacts.children[1], name: "Shroud of Shame", action: "You must avert your gaze this round!", icon: "🥺"}
+    const cudgel = {ID: 2, element: templateArtifacts.children[2], name: "Cudgel of the Tanner", action: "You are now on the <span class=\"tannerteam\">tanner</span> team!", icon: "🔨"}
+    const dagger = {ID: 3, element: templateArtifacts.children[3], name: "Dagger of the Traitor", action: "Your win condition is inverted!", icon: "🗡️"}
+    const nothing = {ID: 4, element: templateArtifacts.children[4], name: "Void of Nothingness", action: "None.", icon: "🌌"}
+    const claw = {ID: 5, element: templateArtifacts.children[5], name: "Claw of the Werewolf", action: "You are now on the <span class=\"wolfteam\">wolf</span> team!", icon: "🐾"}
+    const brand = {ID: 6, element: templateArtifacts.children[6], name: "Brand of the Villager", action: "You are now on the <span class=\"villageteam\">village</span> team!", icon: "🧹"}
+    const shield = {ID: 7, element: $("#template .shield")[0], name: "Shield", action: "Cards protected by a shield token cannot be viewed or moved!", icon: "🛡️"}
+    let nCards = 0
+    let nArtifacts = 0
+    const artifacts = [mask, shroud, cudgel, dagger, nothing, claw, brand]
+    const artifactsAndShield = [mask, shroud, cudgel, dagger, nothing, claw, brand, shield]
+    let showingTooltip = false
+    let rect
+    const initRoles = [[sentinel, false], [doppelganger, false], [werewolf, true], [werewolf, true], [mason, false], [mason, false], [seer, true], [pi, false], [robber, true], [witch, false], [troublemaker, true], [vi, false], [drunk, false], [insomniac, true], [revealer, false], [curator, false], [villager, false], [villager, false], [villager, false], [tanner, false]]
+    const initArtifacts = [[mask, true], [shroud, false], [cudgel, true], [dagger, true], [nothing, true], [claw, false], [brand, false]]
+    const unknownCard = $("#template .card.unknown")[0]
+    const shieldedCard = $("#template .card.shielded")[0]
+    const unknownArtifact = $("#template .artifact.unknown")[0]
+    const unsetPlayerContainer = document.getElementById("template-player")
+    const CONFIGS = 0, GAMEPLAY = 1, DAY = 2
+    let mode = CONFIGS
+    let rolesInPlay = [], artifactsInPlay = []
+    let loadedPhases = []
+    const orderPanel = document.getElementById("order")
+    const doppySeparator = "-"
+    const playerList = document.getElementById("player-list")
+    let playerCount = 3
+    let centerCardCount = 3
+    let playerCardCounts = [1, 1, 1]
+    let playerNames = ["", "", ""]
+    let playerCardSum = 0
+    let homogeneousPlayerCounts = true
+    let caseInsensitive = true
+    let seerViewCount = 2
+    let curatorFlip = false
+    let usingTimer = false
+    let timerM = 5
+    let timerB = 10
+    const settings = Array.from($("#other-configs input"))
+    const stylesheet = document.styleSheets[0]
+    let cardsSelected = new Array(initRoles.length).fill(false)
+    let artifactsSelected = new Array(initArtifacts.length).fill(false)
+    const includeDoppyElement = document.getElementById("include-doppy")
+    const includeDoppyInput = document.getElementById("include-doppy-input")
+    let includeDoppy = true
+    let seed = ""
+    let savetextError = ""
+    let playerSelector = document.getElementById("player-selector")
+    let mePlayer = -1
+    let curatorInPlay = false
+    let revealerInPlay = false
+    let sentinelInPlay = false
+    let doppyInPlay = false
+    let descriptivePhases = []
+    let takingSelection = true
+
+    let nUnshieldedOtherPlayerCards = 0
+
+    let onClarity = false
+
+    let initializedCat = false
+
+    function openAnswer(answer, button) {
+        if (answer.style.display == "none") {
+            answer.style.display = "block"
+            button.innerHTML = "[close long answer]"
+        } else {
+            answer.style.display = "none"
+            button.innerHTML = "[open long answer]"
+        }
+    }
+
+    function initializeCat() {
+        if (!initializedCat) {
+            initializedCat = true
+            catRect = document.getElementById("cat").getBoundingClientRect()
+            setTimeout(function(){
+                document.getElementById("cat").style.position = "absolute"
+                document.getElementById("cat").style.top = `${catRect.top}px`
+                document.getElementById("cat").style.left = `${catRect.left}px`
+                document.getElementById("cat").onmousedown = dragMouseDown
+            }, 20)
+        }
+    }
+
+    function clarity() {
+        document.getElementById("clarity").style.display = "block"
+        document.getElementById("everything-fades").style.display = "grid"
+        window.setTimeout(function(){
+            document.getElementById("clarity").style.opacity = "1"
+            document.getElementById("everything-fades").style.opacity = "1"
+        },40)
+    }
+
+    function nuclarity() {
+        window.setTimeout(function(){
+            if (onClarity) {
+                onClarity = false
+            } else {
+                document.getElementById("clarity").style.opacity = "0"
+                document.getElementById("everything-fades").style.opacity = "0"
+                window.setTimeout(function(){
+                    document.getElementById("clarity").style.display = "none"
+                    document.getElementById("everything-fades").style.display = "none"
+                },400)
+            }
+        }, 20)
+    }
+
+    function noNuclarity() {
+        onClarity = true
+    }
+
+    function hidePlayerOptions() {
+        document.getElementById("player-options").style.display = "none"
+    }
+
+    function playerSelect(n) {
+        mePlayer = n
+        if (n >= 0) {
+            document.getElementById("selected-player").innerHTML = `${(playerNames[mePlayer - 1].length == 0) ? "no-name nelly" : playerNames[mePlayer - 1]} (player ${mePlayer})`
+            document.getElementById("selected-player").className = `player${mePlayer}`
+            document.getElementById("start-button").style.background = `var(--player${mePlayer})`
+            document.getElementById("start-warning").style.display = "none"
+            document.getElementById("start-button").style.display = "block"
+        } else { // reset if -1
+            document.getElementById("selected-player").innerHTML = "none"
+            document.getElementById("selected-player").className = ""
+            document.getElementById("start-warning").style.display = "block"
+            document.getElementById("start-button").style.display = "none"
+        }
+    }
+
+    function summonPlayerSelector() {
+        window.setTimeout(function(){
+            const rect = document.getElementById("player-selector").getBoundingClientRect()
+            const bodyRect = document.body.getBoundingClientRect()
+            document.getElementById("player-options").style.display = "block"
+            document.getElementById("player-options").style.bottom = `${bodyRect.height - rect.top}px`
+            document.getElementById("player-options").style.right = `${bodyRect.width - rect.right}px`
+            document.getElementById("player-options").style.minWidth = `${rect.width}px`
+        }, 20)
+    }
+
+    function generatePlayerSelector() {
+        let options = ""
+        for (let i = 0; i < playerCount; i++) {
+            options += `<span class="player-option player${i + 1}" onmouseenter="playerSelect(${i + 1})" onclick="hidePlayerOptions()">${(playerNames[i].length == 0) ? "no-name nelly" : playerNames[i]} (player ${i + 1})</span>`
+        }
+        document.getElementById("player-options").innerHTML = options
+    }
+
+    function verifyStart() {
+        if (playerCardSum != nCards) {
+            document.getElementById("complete-warning").style.display = "block"
+            document.getElementById("before-start").style.display = "none"
+            document.getElementById("seed-warning").style.display = "none"
+        } else if (seed.length == 0) {
+            document.getElementById("complete-warning").style.display = "none"
+            document.getElementById("before-start").style.display = "none"
+            document.getElementById("seed-warning").style.display = "block"
+        } else {
+            document.getElementById("complete-warning").style.display = "none"
+            document.getElementById("before-start").style.display = "block"
+            document.getElementById("seed-warning").style.display = "none"
+        }
+    }
+
+    function saveSeed() {
+        seed = document.getElementById("seed").value.replace(/;/g, '').toUpperCase()
+        verifyStart()
+        loadSeed()
+    }
+
+    function loadSeed() {
+        document.getElementById("seed").value = seed
+    }
+
+    async function paste(input) {
+        const text = await navigator.clipboard.readText();
+        input.value = text;
+    }
+
+    function loadSave() {
+        let txt = document.getElementById("load-save").value
+        if (!verifySave(txt)) {
+            document.getElementById("error").innerHTML = savetextError
+        } else {
+            document.getElementById("error").innerHTML = ""
+            loadText(txt)
+        }
+    }
+
+    function verifySave(txt) {
+        // bin cards; bin artifacts; ...settings (homo case curo seer); centercount; playerCount; seed; [...playername playercardcount#]
+        if (txt.length == 0) {
+            savetextError = "Cannot load empty data!"
+            return false
+        }
+        let save = txt.split(";")
+        if (save.length % 2 != 0) {
+            savetextError = `${save.length} is an invalid number of ;-separated parameters (must be even)`
+            return false
+        } else if (save.length < 18 || save.length > 32) {
+            savetextError = `${save.length} is an invalid number of ;-separated parameters (must be within [18, 32])`
+            return false
+        }
+        // verify quantity (just algebraic form, don't bring in playerCount)
+        if (!save[0].match(new RegExp(`^[01]{${initRoles.length}}$`))) {
+            savetextError = `"${save[0]}" is not a valid role list (must be ${initRoles.length} bits)`
+            return false
+        } else if (!save[1].match(new RegExp(`^[01]{${initArtifacts.length}}$`))) {
+            savetextError = `"${save[1]}" is not a valid artifact list (must be ${initArtifacts.length} bits)`
+            return false
+        } else if (!save[1].match(new RegExp(`.*1.*1.*`))) {
+            savetextError = `"${save[1]}" is not a valid artifact list (must have at least two 1's)`
+            return false
+        } else if (save[2] != '0' && save[2] != '1') {
+            savetextError = `"${save[2]}" is not a valid "give all players the same number of cards?" value (must be 0 or 1)`
+            return false
+        } else if (save[3] != '0' && save[3] != '1') {
+            savetextError = `"${save[3]}" is not a valid "case insensitive action encodings?" value (must be 0 or 1)`
+            return false
+        } else if (save[4] != '0' && save[4] != '1') {
+            savetextError = `"${save[4]}" is not a valid "curator reveals one artifact?" value (must be 0 or 1)`
+            return false
+        } else if (!save[5].match(new RegExp(`^\\d+$`))) {
+            savetextError = `"${save[5]}" is not a valid "seer view count" value (must be a positive integer)`
+            return false
+        } else if (save[6] != '0' && save[6] != '1') {
+            savetextError = `"${save[6]}" is not a valid "show timer?" value (must be 0 or 1)`
+            return false
+        } else if (!save[7].match(new RegExp(`^\\d+$`))) {
+            savetextError = `"${save[7]}" is not a valid "timer coefficient" value (must be a positive integer)`
+            return false
+        } else if (!save[8].match(new RegExp(`^\\d+$`))) {
+            savetextError = `"${save[8]}" is not a valid "timer constant" value (must be a positive integer)`
+            return false
+        } else if (!save[9].match(new RegExp(`^\\d+$`))) {
+            savetextError = `"${save[9]}" is not a valid "card count in center" value (must be a positive integer)`
+            return false
+        } else if (!save[10].match(new RegExp(`^\\d+$`))) {
+            savetextError = `"${save[10]}" is not a valid "player count" value (must be a positive integer)`
+            return false
+        } else if (Number(save[10]) > 10 || Number(save[10]) < 3) {
+            savetextError = `"${save[10]}" is not a valid "player count" value (must be within [3, 10])`
+            return false
+        } else if (((save.length - 12) / 2) != save[10]) {
+            savetextError = `Mismatch between number of listed players (${(save.length - 12) / 2}) and listed player count (${save[10]})`
+            return false
+        }
+        // seed (save[11]) can literally be whatever so sure
+        for (let i = 0; i < Number(save[10]); i++) {
+            if (!save[2*i+13].match(new RegExp(`^\\d+$`))) {
+                savetextError = `Invalid card count "${save[2*i+13]}" for player ${i+1} "${save[2*i+12]}" (must be a positive integer)`
+                return false
+            }
+        }
+        savetextError = ""
+        return true
+    }
+
+    function pasteSave() {
+        const inputSaveText = document.getElementById("load-save")
+        inputSaveText.value = ""
+        paste(inputSaveText)        
+    }
+
+    function copySave() {
+        const inputSaveText = document.getElementById("copy-save")
+        inputSaveText.select()
+        inputSaveText.setSelectionRange(0, 99999)
+        let saveText = inputSaveText.value
+        navigator.clipboard.writeText(saveText)
+        let inputSaveHTML = inputSaveText.outerHTML
+        inputSaveText.remove()
+        document.getElementById("copy-save-container").innerHTML = inputSaveHTML
+        document.getElementById("copy-save").value = saveText
+        document.getElementById("copied-notif").style.display = "inline-block"
+        document.getElementById("copy-button").style.display = "none"
+        document.getElementById("copied-notif").style.animation = "cardtilt-fade 0.55s ease-in-out"
+        setTimeout(function(){
+            document.getElementById("copied-notif").style.display = "none"
+            document.getElementById("copy-button").style.display = "inline"
+            document.getElementById("copied-notif").style.animation = ""
+        }, 480)
+    }
+
+    function enforceIncludeDoppy() {
+        includeDoppy = includeDoppyInput.checked
+        const doppyRoles = Array.from(document.getElementsByClassName("doppy-role"))
+        if (includeDoppy) {
+            for (let i = 0; i < doppyRoles.length; i++) {
+                doppyRoles[i].style.display = "list-item"
+            }
+        } else {
+            for (let i = 0; i < doppyRoles.length; i++) {
+                doppyRoles[i].style.display = "none"
+            }
+        }
+    }
+
+    function loadText(txt) {
+        let save = txt.split(";")
+        let cardsToInclude = save[0].split("")
+        const cardElements = Array.from(cardList.children)
+        for (let i = 0; i < cardsToInclude.length; i++) {
+            if ((cardsToInclude[i] == "1") != cardsSelected[i]) {
+                selectCard(cardElements[i], initRoles[i][0].ID, i)
+            }
+        }
+        let artifactsToInclude = save[1].split("")
+        const artifactElements = Array.from(artifactList.children)
+        for (let i = 0; i < artifactsToInclude.length; i++) {
+            if ((artifactsToInclude[i] == "1") != artifactsSelected[i]) {
+                selectArtifact(artifactElements[i], initArtifacts[i][0].ID, i, true)
+            }
+        }
+        homogeneousPlayerCounts = (save[2] == "1")
+        caseInsensitive = (save[3] == "1")
+        curatorFlip = (save[4] == "1")
+        seerViewCount = Number(save[5])
+        usingTimer = (save[6] == "1")
+        timerM = Number(save[7])
+        timerB = Number(save[8])
+        centerCardCount = Number(save[9])
+        playerCount = Number(save[10])
+        seed = save[11].toUpperCase()
+        let newPlayerNames = new Array(playerCount).fill("")
+        let newPlayerCardCounts = new Array(playerCount).fill(0)
+        let j = 0
+        for (let i = 12; i < save.length; i += 2) {
+            newPlayerNames[j] = save[i]
+            newPlayerCardCounts[j] = Number(save[i + 1])
+            j++
+        }
+        playerNames = newPlayerNames
+        playerCardCounts = newPlayerCardCounts
+        initializePlayerList()
+        loadSettings()
+        loadSeed()
+        enforceHomogeneousPlayerCounts()
+        loadPlayers()
+    }
+
+    function saveText() {
+        // bin cards; bin artifacts; ...settings; centercount; playerCount; seed; [...playername playercardcount#]
+        let save = new Array(8 + playerCount * 2).fill("")
+        for (let i = 0; i < cardsSelected.length; i++) {
+            save[0] += cardsSelected[i] ? "1" : "0"
+        }
+        for (let i = 0; i < artifactsSelected.length; i++) {
+            save[1] += artifactsSelected[i] ? "1" : "0"
+        }
+        save[2] = homogeneousPlayerCounts ? "1" : "0"
+        save[3] = caseInsensitive ? "1" : "0"
+        save[4] = curatorFlip ? "1" : "0"
+        save[5] = seerViewCount
+        save[6] = usingTimer ? "1" : "0"
+        save[7] = timerM
+        save[8] = timerB
+        save[9] = centerCardCount
+        save[10] = playerCount
+        save[11] = seed
+        for (let i = 0; i < playerCount; i++) {
+            save[12 + 2 * i] = playerNames[i]
+            save[13 + 2 * i] = playerCardCounts[i]
+        }
+        return save.join(";")
+    }
+
+    function destroyPlayer(xElement, childIndex) {
+        playerCount--
+        playerList.children[childIndex].remove()
+        playerList.children[childIndex - 1].remove()
+        playerList.children[childIndex - 2].remove()
+        savePlayers()
+        initializePlayerList()
+        enforceHomogeneousPlayerCounts()
+        if (mePlayer == (childIndex - 2) / 3) {
+            playerSelect(-1)
+        } else if (mePlayer > (childIndex - 2) / 3) {
+            playerSelect(mePlayer - 1)
+        }
+        loadPlayers()
+    }
+
+    window.setTimeout(function(){
+        saveSettings()
+        savePlayers()
+        enforceHomogeneousPlayerCounts()
+        loadPlayers()
+        includeDoppyInput.checked = includeDoppy
+        enforceIncludeDoppy()
+        saveSeed()
+        loadSeed()
+        loadSettings()
+        document.getElementById('copy-save').value = ""
+    }, 20)
+
+    function saveSettings() {
+        homogeneousPlayerCounts = settings[0].checked
+        caseInsensitive = settings[1].checked
+
+        curatorFlip = settings[2].checked
+        if (curatorFlip) {
+            curator.action = curatorBaselineAction + curatorModifiedAction
+        } else {
+            curator.action = curatorBaselineAction
+        }
+        seerViewCount = Number(settings[3].value)
+        
+        if (seerViewCount == 1) {
+            document.getElementById("seer-s").style.display = "none"
+            seer.action = seerBaselineAction.replace("2", seerViewCount).replace("9", "")
+        } else {
+            document.getElementById("seer-s").style.display = "inline"
+            seer.action = seerBaselineAction.replace("2", seerViewCount).replace("9", "s")
+        }
+
+        usingTimer = settings[4].checked
+        if (usingTimer) {
+            timerM = Number(settings[5].value)
+            timerB = Number(settings[6].value)
+        } else {
+            timerM = 5
+            timerB = 10
+        }
+    }
+
+    function loadSettings() {
+        settings[0].checked = homogeneousPlayerCounts
+        settings[1].checked = caseInsensitive
+        settings[2].checked = curatorFlip
+        settings[3].value = seerViewCount
+        settings[4].checked = usingTimer
+        if (usingTimer) {
+            settings[5].value = timerM
+            settings[6].value = timerB
+        }
+        document.getElementById("wait-time-p").style.display = usingTimer ? "block" : "none"
+    }
+
+    function handleSettingsUpdate() {
+        saveSettings()
+        enforceHomogeneousPlayerCounts()
+        loadSettings()
+        loadPlayers()
+    }
+
+    function childIndex(child) {
+        let parent = child.parentElement
+        let index = Array.from(parent.children).indexOf(child)
+        return index
+    }
+
+    function savePlayers() {
+        let nameInputs = Array.from($("#player-list .name-input"))
+        let countInputs = Array.from($("#player-list .count-input"))
+        let centerCountInput = document.getElementById("center-count-input")
+        centerCardCount = Number(centerCountInput.value)
+        settings[3].max = centerCardCount
+        if (seerViewCount > centerCardCount) {
+            seerViewCount = centerCardCount
+            loadSettings()
+        }
+        for (let i = 0; i < playerCount; i++) {
+            playerNames[i] = nameInputs[i].value.replace(/;/g, "")
+            playerCardCounts[i] = Number(countInputs[i].value)
+        }
+    }
+
+    function handlePlayerUpdate() {
+        savePlayers()
+        enforceHomogeneousPlayerCounts()
+        loadPlayers()
+    }
+
+    function initializePlayerList() {
+        playerList.innerHTML = document.getElementById("template-player-list").innerHTML.replace(/4/g, "")
+        document.documentElement.style.setProperty("--player-new", `var(--player4)`)
+        for (let i = 3; i < playerCount; i++) {
+            playerList.innerHTML += unsetPlayerContainer.innerHTML.replace(/4/g, i + 1)
+        }
+        document.documentElement.style.setProperty("--player-new", `var(--player${playerCount + 1})`)   
+        if (playerCount == 10) {
+            document.getElementById("add-player").style.display = "none"
+        } else {
+            document.getElementById("add-player").style.display = "block"
+        } 
+    }
+
+    function loadPlayers() {
+        let nameInputs = Array.from($("#player-list .name-input"))
+        let countInputs = Array.from($("#player-list .count-input"))
+        let centerCountInput = document.getElementById("center-count-input")
+        centerCountInput.value = centerCardCount
+        playerCardSum = centerCardCount
+        for (let i = 0; i < playerCount; i++) {
+            nameInputs[i].value = playerNames[i]
+            countInputs[i].value = playerCardCounts[i]
+            playerCardSum += Number(playerCardCounts[i])
+        }
+        document.getElementById("player-role-count").innerHTML = playerCardSum
+        document.getElementById("player-side-role-count").innerHTML = playerCardSum
+        document.getElementById("player-count").innerHTML = playerCount
+        verifyStart()
+        playerSelect(mePlayer)
+    }
+
+    function enforceHomogeneousPlayerCounts() {
+        if (homogeneousPlayerCounts) {
+            let countInputs = Array.from($("#player-list .count-input"))
+            for (let i = 1; i < playerCount; i++) {
+                playerCardCounts[i] = playerCardCounts[0]
+                countInputs[i].readOnly = true
+            }
+        } else {
+            let countInputs = Array.from($("#player-list .count-input"))
+            for (let i = 1; i < playerCount; i++) {
+                countInputs[i].readOnly = false
+            }
+        }
+    }
+
+    function addPlayer() {
+        savePlayers()
+        let newPlayerCardCounts = new Array(++playerCount)
+        let newPlayerNames = new Array(playerCount)
+        for (let i = 0; i < playerCount; i++) {
+            newPlayerCardCounts[i] = playerCardCounts[i]
+            newPlayerNames[i] = playerNames[i]
+        }
+        playerNames[playerCount - 1] = ""
+        if (homogeneousPlayerCounts) {
+            newPlayerCardCounts[playerCount - 1] = newPlayerCardCounts[0]
+        } else {
+            newPlayerCardCounts[playerCount - 1] = 1
+        }
+        playerCardCounts = newPlayerCardCounts
+        playerList.innerHTML += unsetPlayerContainer.innerHTML.replace(/4/g, playerCount)
+        enforceHomogeneousPlayerCounts()
+        loadPlayers()
+        document.documentElement.style.setProperty("--player-new", `var(--player${playerCount + 1})`)
+        if (playerCount == 10) {
+            document.getElementById("add-player").style.display = "none"
+        } else {
+            document.getElementById("add-player").style.display = "block"
+        }
+    }
+
+    function toggleSelected(thing) {
+        if (thing.className.indexOf("selected") < 0) {
+            thing.className += " selected"
+            return true
+        } else {
+            thing.className = thing.className.replace(/ ?selected/g, "")
+            return false
+        }
+    }
+
+    function configurePhases() {
+        document.getElementById("role-count").innerHTML = nCards
+        document.getElementById("card-side-role-count").innerHTML = nCards
+        let phasesInUse = 0
+        let roleCounts = new Array(roles.length).fill(0)
+        for (let i = 0; i < loadedPhases.length; i++) {
+            if (loadedPhases[i].length > 0) {
+                phasesInUse++
+            }
+            for (let j = 0; j < loadedPhases[i].length; j++) {
+                if (loadedPhases[i][j].roleViewed == null) {
+                    roleCounts[loadedPhases[i][j].roleID]++
+                }
+            }
+        }
+        orderPanel.style.gridTemplateRows = "auto ".repeat(phasesInUse)
+        let phasesHTML = ""
+        let rolesAlreadySeen = new Array(roles.length).fill(false)
+        for (let i = 0; i < loadedPhases.length; i++) {
+            if (loadedPhases[i].length > 0) {
+                phasesHTML += `<div class="phase-arrow"></div><div class="phase-content ${phases[i].class}">${phases[i].sidebarName}<ul>`
+                for (let j = 0; j < loadedPhases[i].length; j++) {
+                    if (loadedPhases[i][j].roleViewed == null) { // non doppler
+                        if (rolesAlreadySeen[loadedPhases[i][j].roleID]) {
+                            continue
+                        }
+                        rolesAlreadySeen[loadedPhases[i][j].roleID] = true
+                        phasesHTML += `<li><span class="role-in-phase" onclick="showCardTooltip(this, ${loadedPhases[i][j].roleID});" onmouseenter="showCardTooltip(this, ${loadedPhases[i][j].roleID})">${roles[loadedPhases[i][j].roleID].name}</span>`
+                        if (roleCounts[loadedPhases[i][j].roleID] > 1) {
+                            phasesHTML += ` <span class="count">(${roleCounts[loadedPhases[i][j].roleID]})</span>`
+                        } 
+                        if (loadedPhases[i][j].roleID == curator.ID) {
+                            phasesHTML += ` <span id="artifacts-in-phase">( `
+                            let sortedArtifacts = artifactsInPlay.toSorted((a, b) => a.ID > b.ID)
+                            for (let i = 0; i < sortedArtifacts.length; i++) {
+                                phasesHTML += `<span class="role-in-phase" onclick="showArtifactTooltip(this, ${sortedArtifacts[i].ID});" onmouseenter="showArtifactTooltip(this, ${sortedArtifacts[i].ID})">${sortedArtifacts[i].icon}</span> `
+                            }
+                            phasesHTML += `)</span>`
+                        }
+                        phasesHTML += `</li>`
+                    } else {
+                        phasesHTML += `<li class="doppy-role"><span class="role-in-phase" onclick="showCardTooltip(this, ${doppelganger.ID});" onmouseenter="showCardTooltip(this, ${doppelganger.ID})">${doppelganger.nickname}</span>${doppySeparator}<span class="role-in-phase" onclick="showCardTooltip(this, ${loadedPhases[i][j].roleViewed});" onmouseenter="showCardTooltip(this, ${loadedPhases[i][j].roleViewed})">${roles[loadedPhases[i][j].roleViewed].name}</span></li>`
+                    }
+                }
+                phasesHTML += "</ul></div>"
+            }
+        }
+        orderPanel.innerHTML = phasesHTML
+        enforceIncludeDoppy()
+        verifyStart()
+    }
+
+    // a role here is: {roleID: int, roleViewed?: int} (latter for doppy)
+    function loadPhases() {
+        rolesInPlay.sort((a,b) => (a.ID > b.ID))
+        let doppyFlag = false
+        let loadedPhasesPrivate = []
+        for (let i = 0; i < phases.length; i++) {
+            loadedPhasesPrivate[i] = []
+        }
+        for (let i = 0; i < rolesInPlay.length; i++) {
+            loadedPhasesPrivate[rolesInPlay[i].phase].push({roleID: rolesInPlay[i].ID, roleViewed: null})
+            if (rolesInPlay[i].ID == doppelganger.ID) {
+                doppyFlag = true
+            }
+        }
+        let rolesAlreadySeen = new Array(roles.length).fill(false)
+        if (doppyFlag) {
+            for (let i = 0; i < rolesInPlay.length; i++) {
+                if (rolesAlreadySeen[rolesInPlay[i].ID]) {
+                    continue
+                }
+                if (rolesInPlay[i].ID == doppelganger.ID) {
+                    continue
+                }
+                rolesAlreadySeen[rolesInPlay[i].ID] = true
+                if (rolesInPlay[i].doppyPhase != seeyPhase.ID && rolesInPlay[i].doppyPhase != nonePhase.ID) {
+                    loadedPhasesPrivate[rolesInPlay[i].doppyPhase].push({roleID: doppelganger.ID, roleViewed: rolesInPlay[i].ID})
+                } else { // for seey phase specifically, we want to insert doppy roles after regular roles
+                    let indexOfReal = -1
+                    for (let j = loadedPhasesPrivate[rolesInPlay[i].doppyPhase].length - 1; j >= 0; j--) {
+                        if (loadedPhasesPrivate[rolesInPlay[i].doppyPhase][j].roleID == rolesInPlay[i].ID) {
+                            indexOfReal = j
+                            break
+                        }
+                    }
+                    if (indexOfReal < 0) {
+                        break
+                    }
+                    loadedPhasesPrivate[rolesInPlay[i].doppyPhase].splice(indexOfReal + 1, 0, {roleID: doppelganger.ID, roleViewed: rolesInPlay[i].ID})
+                }
+            }
+        }
+        loadedPhases = loadedPhasesPrivate
+        return loadedPhasesPrivate
+    }
+
+    function selectCard(card, roleID, childID, owner=null, globalIndex=-1) {
+        switch (mode) {
+            case CONFIGS:
+                let isNowSelected = toggleSelected(card)
+                if (roleID == curator.ID) {
+                    artifactList.style.display = isNowSelected ? "block" : "none"
+                    curatorInPlay = isNowSelected
+                } else if (roleID == sentinel.ID) {
+                    shieldList.style.display = isNowSelected ? "block" : "none"
+                    sentinelInPlay = isNowSelected
+                    if (doppyInPlay) {
+                        shieldList2.style.display = isNowSelected ? "inline-flex" : "none"
+                    }
+                } else if (roleID == doppelganger.ID) {
+                    includeDoppyElement.style.display = isNowSelected ? "block" : "none"
+                    doppyInPlay = isNowSelected
+                    if (sentinelInPlay) {
+                        shieldList2.style.display = isNowSelected ? "inline-flex" : "none"
+                    }
+                } else if (roleID == revealer.ID) {
+                    revealerInPlay = isNowSelected
+                }
+                if (isNowSelected) {
+                    rolesInPlay.push(roles[roleID])
+                    nCards++
+                } else {
+                    rolesInPlay.splice(rolesInPlay.indexOf(roles[roleID]), 1)
+                    nCards--
+                }
+                if (isNowSelected) {
+                    cardsSelected[childID] = true
+                } else {
+                    cardsSelected[childID] = false
+                }
+                loadPhases()
+                configurePhases()
+                break
+            case GAMEPLAY:
+                if (!takingSelection) {
+                    return false
+                }
+                owner = Number(owner)
+                if (expecting == ARTIFACT || expecting == PLAYER) {
+                    return false
+                } else if (expecting == OTHER_PLAYER_CARD && (owner == 0 || owner == mePlayer)) {
+                    return false
+                } else if (expecting == ANY_PLAYER_CARD && owner == 0) {
+                    return false
+                } else if (expecting == CENTER_CARD && owner > 0) {
+                    return false
+                }
+                if (action == TRUBBY_SWAP && owner == oldData.owner) { // my special case <3
+                    return false
+                }
+                takingSelection = false
+                currentRecord *= nCards
+                currentRecord += Number(globalIndex)
+                performAction({type: "card", element: card, role: Number(roleID), childID: Number(childID), owner: Number(owner), globalIndex: Number(globalIndex)})
+                break
+            default:
+                break
+        }
+    }
+
+    function selectPlayer(playerID) {
+        if (expecting != PLAYER) {
+            return false
+        }
+        currentRecord *= playerCount
+        currentRecord += playerID - 1
+        performAction({type: "player", playerID: playerID})
+    }
+
+    function selectArtifact(artifact, artifactID, childID, canBeLessThanTwo = false) {
+        switch (mode) {
+            case CONFIGS:
+                let isNowSelected = toggleSelected(artifact)
+                if (isNowSelected) {
+                    artifactsInPlay.push(artifacts[artifactID])
+                    nArtifacts++
+                } else if (nArtifacts > 2 || canBeLessThanTwo) {
+                    artifactsInPlay.splice(artifactsInPlay.indexOf(artifacts[artifactID]), 1)
+                    nArtifacts--
+                } else {
+                    isNowSelected = toggleSelected(artifact)
+                }
+                if (isNowSelected) {
+                    artifactsSelected[childID] = true
+                } else {
+                    artifactsSelected[childID] = false
+                }
+                configurePhases()
+                break
+            case GAMEPLAY:
+                if (expecting != ARTIFACT) {
+                    return false
+                }
+                currentRecord *= nArtifacts
+                currentRecord += Number(childID)
+                performAction({type: "artifact", element: artifact, content: artifactID, childID: childID})
+                break
+            default:
+                break
+        }
+    }
+
+    function configureRoles() {
+        for (let i = 0; i < initRoles.length; i++) {
+            cardList.innerHTML += initRoles[i][0].element.outerHTML.replace(/CHILD_INDEX/g, i).replace("class", `style="opacity: 0" class`) + " "
+            if (initRoles[i][1]) {
+                cardsSelected[i] = true
+                cardList.children[i].className += " selected"
+                rolesInPlay.push(initRoles[i][0])
+                nCards++
+            }
+            window.setTimeout(function(){
+                cardList.children[i].style.opacity = 1
+                cardList.children[i].className += " jiggling"
+                cardList.children[i].addEventListener('animationend', () => {
+                    cardList.children[i].className = cardList.children[i].className.replace(" jiggling", "")
+                }, { once: true });
+            }, 30 * i)
+        }
+        for (let i = 0; i < initArtifacts.length; i++) {
+            artifactList.innerHTML += initArtifacts[i][0].element.outerHTML.replace(/CHILD_INDEX/g, i) + " "
+            if (initArtifacts[i][1]) {
+                artifactsSelected[i] = true
+                artifactList.children[i].className += " selected"
+                artifactsInPlay.push(initArtifacts[i][0])
+                nArtifacts++
+            }
+        }
+        shieldList.innerHTML += shield.element.outerHTML + " " + shield.element.outerHTML.replace('" ', '" id="shield-list-2"')
+        shieldList2 = document.getElementById("shield-list-2")
+        loadPhases()
+        configurePhases()
+    }
+    
+    function showCardTooltip(card, roleID) {
+        rect = card.getBoundingClientRect()
+        role = roles[roleID]
+        document.getElementById("tooltipf-icon").innerHTML = role.icon
+        document.getElementById("tooltipf-name").innerHTML = role.name
+        document.getElementById("tooltipf-phase").innerHTML = phases[role.phase].name
+        document.getElementById("tooltipf-phaseID").innerHTML = phases[role.phase].publicID
+        document.getElementById("tooltipf-team").innerHTML = (teams[role.team].name) + (roleID == doppelganger.ID || roleID == pi.ID ? " (by default)" : "")
+        document.getElementById("tooltipf-wincondition").innerHTML = teams[role.team].winCondition + (roleID == doppelganger.ID || roleID == pi.ID ? " (by default)" : "")
+        document.getElementById("tooltipf-action").innerHTML = role.action
+        tooltip.innerHTML = tooltipCard.innerHTML.replace(/tooltipf/g, "tooltip")
+        tooltip.style.display = "grid"
+        showingTooltip = true
+    }
+
+    function exampleTooltip(element) {
+        rect = element.getBoundingClientRect()
+        tooltip.innerHTML = "<span style='border-top: 0; padding-top: 0; text-align: center'>Looks like this?</span>"
+        tooltip.style.display = "grid"
+        showingTooltip = true
+    }
+
+    function timeTip(element) {
+        rect = element.getBoundingClientRect()
+        tooltip.innerHTML = "<span style='border-top: 0; padding-top: 0'>Where N is the maximum number of actions a player might have in a given phase.</span>"
+        tooltip.style.display = "grid"
+        showingTooltip = true
+    }
+
+    function showArtifactTooltip(pip, artifactID) {
+        rect = pip.getBoundingClientRect()
+        artifact = artifactsAndShield[artifactID]
+        document.getElementById("tooltipv-icon").innerHTML = artifact.icon
+        document.getElementById("tooltipv-name").innerHTML = artifact.name
+        document.getElementById("tooltipv-action").innerHTML = artifact.action
+        if (artifactID == shield.ID) {
+            tooltip.innerHTML = tooltipArtifact.innerHTML.replace(/tooltipv/g, "tooltip").replace(/<b> Artifact<\/b>:/g, "")
+        } else {
+            tooltip.innerHTML = tooltipArtifact.innerHTML.replace(/tooltipv/g, "tooltip")
+        }
+        tooltip.style.display = "grid"
+        showingTooltip = true
+    }
+
+    document.body.onpointermove = mouseFollowEvent
+    document.body.onclick = function(event){
+        mouseFollowEvent(event)
+        hidePlayerOptions(event)
+    }
+    
+    function mouseFollowEvent(event) {
+        if (showingTooltip) {
+            const offset = 15;
+            const { clientX, clientY } = event
+            const bodyWidth = document.body.getBoundingClientRect().width
+            const bodyHeight = document.body.getBoundingClientRect().height
+            const tooltipWidth = tooltip.getBoundingClientRect().width
+            const tooltipHeight = tooltip.getBoundingClientRect().height
+            if (clientX < bodyWidth / 2) {
+                tooltipAnimation = tooltip.animate({
+                    left: `${clientX + offset}px`,
+                }, {duration: 1000, fill: "forwards"})
+            } else {
+                tooltipAnimation = tooltip.animate({
+                    left: `${clientX - offset - tooltipWidth}px`,
+                }, {duration: 1000, fill: "forwards"})
+            }
+            if (clientY < bodyHeight / 2) {
+                tooltipAnimation = tooltip.animate({
+                    top: `${clientY + offset}px`,
+                }, {duration: 1000, fill: "forwards"})
+            } else {
+                tooltipAnimation = tooltip.animate({
+                    top: `${clientY - offset - tooltipHeight}px`,
+                }, {duration: 1000, fill: "forwards"})
+            }
+        }
+
+        if (showingTooltip) {
+            const buffer = 20
+            const {clientX, clientY} = event
+            if (clientX < rect.left  - buffer || clientX > rect.right + buffer || clientY < rect.top - buffer || clientY > rect.bottom + buffer) {
+                tooltip.style.display = "none"
+                showingTooltip = false
+            }
+        }
+    }
+
+    function shuffleHash(str, array) {
+        array = [...array]
+        str = str.toUpperCase()
+        hash = pseudorands[str.length % 50]
+        for (let i = 0; i < str.length; i++) {
+            hash *= (pseudorands[Math.abs(i % 50)] % 2109)
+            hash = Math.floor(hash / pseudorands[Math.abs((35 + i) % 50)])
+            hash += (Math.pow(str.charCodeAt(i), 3) * pseudorands[Math.abs((50 - i) % 50)]) - (pseudorands[Math.abs((25 + i) % 50)] * pseudorands[Math.abs((25 - i + 1) % 50)])
+        }
+        hash = Math.abs(hash) + 1297
+
+        let final = []
+
+        for (let i = array.length; i > 0; i--) {
+            let selection = hash % i
+            final.push(array[selection])
+            array.splice(selection,1)
+            hash -= i
+        }
+
+        return final
+    }
+
+    function nthSeededRandomNumber(str, n) {
+        n += 1417
+        str = str.toUpperCase()
+        hash = pseudorands[(str.length + n) % 50]
+        for (let i = 0; i < str.length; i++) {
+            hash *= (pseudorands[Math.abs(i % 50)] % 2109)
+            hash = Math.floor(hash / pseudorands[Math.abs((35 + i) % 50)])
+            hash += (Math.pow(str.charCodeAt(i) - ++n, 3) * pseudorands[Math.abs((50 - i) % 50)]) - (pseudorands[Math.abs((25 + i) % 50)] * pseudorands[Math.abs((25 - i + 1) % 50)])
+            hash = hash % 6001
+        }
+        return (Math.abs(hash) + 1297) % entryCeil()
+    }
+
+
+
+    /*         THIS IS WHERE YOU GET POST-"GAME START" SHIT! HEREON!       */
+
+
+
+
+    function randomSeed() {
+        let length = Math.floor(Math.random() * 12) + 5
+        let str = ""
+        for (let i = 0; i < length; i++) {
+            str += seedChars[Math.floor(Math.random() * nSeedChars)]
+        }
+        seed = str
+        document.getElementById("seed").value = seed
+        verifyStart()
+    }
+
+    const ordinals = ["0th", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th", "11th", "12th", "13th", "14th", "15th", "16th", "17th", "18th", "19th", "20th"]
+    let pools = []
+    let shuffledArtifacts
+    const seedChars = "VFW62BQPX8G3NELRHYI4M9K57TC1S0DAZJOU"
+    const nSeedChars = seedChars.length
+    let chars = ""
+    let nChars = 0
+    const entriesBox = document.getElementById("entries")
+    let maxEntryLength = 2
+    let detailedPhases = []
+    let nthOfDetailedPhases = 0
+    let backupCardZone
+    const continueStr = `</p><p class="continue-str">(<u class="continue-link" id="continue-link" onclick="nextLine(); document.getElementById('continue-link').parentElement.remove()">continue</u>)`
+    let expecting, action
+
+    let currentRecord = 0, myRecordsThisPhase = []
+    let playerIsWolf = [], playerIsMason = []
+    let doppelgangerBecame = -1
+    let cardsViewedAsSeer = 1
+    let cardsViewedAsPI = 1
+    let PIBecame = -1
+    const notifact = document.getElementById("notifact").innerHTML
+
+    let pipsRevealed = false
+    
+    const roleScripts = [
+        {role: 0, script: [
+            {direct: true, line: `Choose another player's card to protect it with a shield token.`, expecting: OTHER_PLAYER_CARD, action: PROTECT}
+        ]},
+        {role: 1, script: [
+            {direct: true, line: `Choose another player's card to view and become.`, expecting: OTHER_PLAYER_CARD, action: BECOME}
+        ]},
+        {role: 2, script: [
+            {direct: true, line: `You look for other <span class="wolfteam">wolves</span>... ${continueStr}`, expecting: null, action: SEEK_WOLVES},
+            {direct: true, line: `You are the only <span class="wolfteam">wolf</span>! As recompense, you may view a card from the center.`, expecting: CENTER_CARD, action: VIEW_CARD},
+        ]},
+        {role: 3, script: [
+            {direct: true, line: `You look for other masons... ${continueStr}`, expecting: null, action: SEEK_MASONS},
+            {direct: true, line: `You are the only mason! ${continueStr.replace(/>continue</, ">wallow<")}`, expecting: null, action: null},
+        ]},
+        {role: 4, script: [
+            {direct: true, line: 0, expecting: null, action: null},
+            {direct: true, line: `Choose another player's card to view.`, expecting: OTHER_PLAYER_CARD, action: VIEW_CARD_AND_SHIFT},
+            {direct: true, line: 1, expecting: CENTER_CARD, action: VIEW_CENTER_AS_SEER}
+        ]},
+        {role: 5, script: [
+            {direct: true, line: `Choose another player's card to view. (1 / 2)`, expecting: OTHER_PLAYER_CARD, action: PI_VIEW},
+            {direct: true, line: `Choose another player's card to view. (2 / 2)`, expecting: OTHER_PLAYER_CARD, action: PI_VIEW},
+        ]},
+        {role: 6, script: [
+            {direct: true, line: `Choose another player's card to rob. ${orDecline()}`, expecting: OTHER_PLAYER_CARD, action: ROB},
+            {direct: true, line: 2, expecting: null, action: ROB_VIEW}
+        ]},
+        {role: 7, script: [
+            {direct: true, line: `Choose a card from the center to view. ${orDecline()}`, expecting: CENTER_CARD, action: WITCH_VIEW},
+            {direct: true, line: 4, expecting: ANY_PLAYER_CARD, action: WITCH}
+        ]},
+        {role: 8, script: [ /* this is when it was fine */
+            {direct: true, line: `Choose two other players' cards to swap. ${orDecline()}`, expecting: OTHER_PLAYER_CARD, action: TRUBBY_STORE},
+            //{direct: true, line: `Choose another player's card to swap.`, expecting: OTHER_PLAYER_CARD, action: TRUBBY_SWAP}
+        ]},
+        {role: 9, script: [
+            {direct: true, line: 5, expecting: null, action: null},
+        ]}, // vi is bad
+        {role: 10, script: [
+            {direct: true, line: `Choose a card from the center to drunkenly become.`, expecting: CENTER_CARD, action: DRINK}
+        ]},
+        {role: 11, script: [
+            {direct: true, line: 6, expecting: null, action: INSOMNIATE}
+        ]},
+        {role: 12, script: [
+            {direct: true, line: `Choose another player's card to reveal.`, expecting: OTHER_PLAYER_CARD, action: REVEAL}
+        ]},
+        {role: 13, script: [
+            {direct: true, line: `Select an artifact to give.`, expecting: ARTIFACT, action: HAVE_ARTIFACT},
+            {direct: true, line: `Select a player to give it to.`, expecting: PLAYER, action: GIVE_ARTIFACT},
+            {direct: true, line: `Select an artifact to reveal.`, expecting: ARTIFACT, action: FLIP_ARTIFACT},
+        ]}
+    ]
+    
+    let doppyScripts = new Array(roleScripts.length).fill(null), doppyDifferent = new Array(roleScripts.length).fill(false)
+
+    doppyScripts[robber.ID] = {role: robber.ID, script: [
+        {direct: true, line: `Choose another player's card to rob.`, expecting: OTHER_PLAYER_CARD, action: DOPPY_ROB},
+        {direct: true, line: 3, expecting: null, action: VIEW_DOPPY}
+    ]}
+    doppyDifferent[robber.ID] = true
+
+    doppyScripts[drunk.ID] = {role: drunk.ID, script: [
+        {direct: true, line: `Choose a card from the center to drunkenly become.`, expecting: CENTER_CARD, action: DOPPY_DRINK}
+    ]}
+    doppyDifferent[drunk.ID] = true
+
+    doppyScripts[insomniac.ID] = {role: insomniac.ID, script: [
+        {direct: true, line: 7, expecting: null, action: VIEW_DOPPY}
+    ]}
+    doppyDifferent[insomniac.ID] = true
+
+    doppyScripts[curator.ID] = {role: 13, script: [
+        {direct: true, line: `Select an artifact to give.`, expecting: ARTIFACT, action: HAVE_ARTIFACT},
+        {direct: true, line: `Select a player to give it to.`, expecting: PLAYER, action: DOPPY_GIVE_ARTIFACT},
+        {direct: true, line: `Select an artifact to reveal.`, expecting: ARTIFACT, action: FLIP_ARTIFACT},
+    ]}
+    doppyDifferent[curator.ID] = true
+
+    let script = []
+
+    let robberLocation = {owner: -1, childID: -1}, doppyLocation = {owner: -1, childID: -1}, drunkLocation = {owner: -1, childID: -1}, insomniacLocation = {owner: -1, childID: -1}
+
+    function isShielded(card) {
+        return (Array.from(Array.from($(".card-selection"))[card.owner].children)[card.childID].getAttribute("data-shielded") == "1")
+    }
+
+    let entrySeed
+
+    let oldData = 0 // global storage for temp data
+
+    let maxPlayerCardCount = 0
+
+    function generateLine(n) {
+        switch (n) {
+            case 0:
+                return `Choose one:
+                <br><u class="terminal-option" onclick="nextLine()">View 1 card from another player.</u>
+                <br><u class="terminal-option" onclick="script.shift(); nextLine()">View ${seerViewCount} card${seerViewCount > 1 ? 's' : ''} in the center.</u>`
+            case 1:
+                return `Choose a card from the center to view. (${cardsViewedAsSeer} / ${seerViewCount})`
+            case 2:
+                return `You view ${describeCard(robberLocation, true)}: ${showCard({role: Number(Array.from(Array.from($(".card-selection"))[robberLocation.owner].children)[robberLocation.childID].getAttribute('data-roleid'))})} ${continueStr}`
+            case 3:
+                return `You view ${describeCard(doppelgangerLocation, true)}: ${showCard({role: Number(Array.from(Array.from($(".card-selection"))[doppelgangerLocation.owner].children)[doppelgangerLocation.childID].getAttribute('data-roleid'))})} ${continueStr}`
+            case 4:
+                return `Choose any player's card to swap it with ${describeCard({owner: 0, childID: currentRecord})}.`
+            case 5:
+                return `Choose one:
+                <br><u class="terminal-option" onclick="displayVI(false); saveRecordAs(0)">Swap all* other players' cards to the left (i.e., <span class="player1">1</span> &lt;- <span class="player2">2</span> &lt;- <span class="player3">3</span>)</u>
+                <br><u class="terminal-option" onclick="displayVI(true); saveRecordAs(1)">Swap all* other players' cards to the right (i.e., <span class="player1">1</span> -&gt; <span class="player2">2</span> -&gt; <span class="player3">3</span>)</u>
+                <br><span style="font-size: small; margin-top: 0.5ch">*excepting those protected by a shield token.</span>`
+            case 6:
+                return `You view ${describeCard(insomniacLocation)}: ${showCard({role: Number(Array.from(Array.from($(".card-selection"))[insomniacLocation.owner].children)[insomniacLocation.childID].getAttribute('data-roleid'))})} ${continueStr}`
+            case 7:
+                return `You view ${describeCard(doppelgangerLocation)}: ${showCard({role: Number(Array.from(Array.from($(".card-selection"))[doppelgangerLocation.owner].children)[doppelgangerLocation.childID].getAttribute('data-roleid'))})} ${continueStr}`
+            case 8:
+                return `You have an artifact! You view it in secret: ${artifacts[Number(document.getElementById("my-artifact").getAttribute("data-artifactid"))].element.outerHTML} ${continueStr}`
+            default:
+                break
+        }
+    }
+
+    function entryTextGenerate() {
+        let entrySavetext = document.getElementById("entry-savetext")
+        const entries = Array.from(document.getElementsByClassName("entry")).map((x) => x.value)
+        entrySavetext.value = entries.join(";")
+    }
+
+    function entryTextCopy() {
+        let entrySavetext = document.getElementById("entry-savetext")
+        entrySavetext.select()
+        entrySavetext.setSelectionRange(0, 99999)
+        let saveText = entrySavetext.value
+        navigator.clipboard.writeText(saveText)
+    }
+
+    function entryTextPaste() {
+        let entrySavetext = document.getElementById("entry-savetext")
+        paste(entrySavetext)
+    }
+
+    function entryTextLoad() {
+        const entries = Array.from(document.getElementsByClassName("entry"))
+        let entrySavetext = document.getElementById("entry-savetext")
+        const values = entrySavetext.value.replace(/ /g, "").split(";")
+        for (let i = 0; i < entries.length; i++) {
+            entries[i].value = values[i]
+        }
+    }
+
+    function configurePips() {
+        const pips = Array.from(document.getElementsByClassName("pip"))
+        const pipsRect = document.getElementById("pips").getBoundingClientRect()
+        let pipRects = new Array(pips.length)
+        let pipScrollTops = new Array(pips.length)
+        for (let i = 0; i < pips.length; i++) {
+            pipRects[i] = pips[i].getBoundingClientRect()
+            pipScrollTops[i] = pips[i].scrollTop
+        }
+        document.getElementById("pips").style.height = `${pipsRect.height}px`
+        //document.getElementById("configs-container").scrollTo(0,99999)
+        setTimeout(function(){
+            let scrollTop = document.getElementById("configs-container").scrollTop
+            for (let i = 0; i < pips.length; i++) {
+                pips[i].style.position = "absolute"
+                pips[i].style.top = `${scrollTop + pipRects[i].top}px`
+                pips[i].style.left = `${pipRects[i].left}px`
+                pips[i].onmousedown = dragMouseDown
+            }
+        }, 20)
+    }
+
+    // very slight adaptation of the w3schools draggable element tutorial
+    // available at https://www.w3schools.com/howto/howto_js_draggable.asp
+    let movingPip = null, pipX1 = 0, pipX2 = 0, pipY1 = 0, pipY2 = 0
+
+    function dragMouseDown(e) {
+        let target = e.target
+        if (target.className == "artifact-icon") {
+            movingPip = target.parentElement
+        } else {
+            movingPip = target
+        }
+        pipX2 = e.clientX;
+        pipY2 = e.clientY;
+        document.onmouseup = closeDraggingElement
+        document.onmousemove = elementDrag
+    }
+
+    function closeDraggingElement(e) {
+        movingPip = null
+        pipX1 = 0
+        pipX2 = 0
+        pipY1 = 0
+        pipY2 = 0
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
+
+    function elementDrag(e) {
+        pipX1 = pipX2 - e.clientX
+        pipY1 = pipY2 - e.clientY
+        pipX2 = e.clientX
+        pipY2 = e.clientY
+        movingPip.style.left = `${movingPip.offsetLeft - pipX1}px`;
+        movingPip.style.top = `${movingPip.offsetTop - pipY1}px`;
+    }
+
+    function terminalDown() {
+        document.getElementById("terminal-container").style.display = "none"
+        document.getElementById("down-button").style.display = "none"
+        document.getElementById("up-button").style.display = "block"
+        document.getElementById("bottom-row").style.display = "block"
+        document.getElementById("configs-container").style.height = "100vh"
+        document.getElementById("pips").style.display = "block"
+        if (!pipsRevealed) {
+            configurePips()
+            pipsRevealed = true
+        }
+    }
+
+    function terminalUp() {
+        document.getElementById("terminal-container").style.display = "block"
+        document.getElementById("down-button").style.display = "block"
+        document.getElementById("up-button").style.display = "none"
+        document.getElementById("bottom-row").style.display = "none"
+        document.getElementById("configs-container").style.height = "var(--body-height)"
+        document.getElementById("pips").style.display = "none"
+    }
+
+    function enactVI(right, vi) {
+        let order = compileVIOrdering(!right, vi) // do not fucking ask
+        let newRoles = new Array(order.length)
+        for (let i = 0; i < order.length - 1; i++) {
+            newRoles[i] = order[i+1].getAttribute("data-roleid")
+        }
+        newRoles[order.length-1] = order[0].getAttribute("data-roleid")
+        for (let i = 0; i < order.length; i++) {
+            order[i].setAttribute("data-roleid", newRoles[i])
+        }
+    }
+
+    function displayVI(right) {
+        unmakeOptions()
+        let order = compileVIOrdering(right)
+        for (let i = 0; i < order.length - 1; i++) {
+            animateFromAToB(order[i], order[i+1])
+        }
+        animateFromAToB(order[order.length - 1], order[0])
+        window.setTimeout(function(){transmission(`You swap all cards to the ${right ? "right" : "left"}. ${continueStr}`)}, 250)
+    }
+
+    // 00000000000101101111;1011100;0;0;0;1;1;3;c;bee;1;bum;4;bin;1
+    // play as bee
+    function compileVIOrdering(right, vi=mePlayer) {
+        // find all player-cards except vi's and shielded
+        let order = []
+        for (let i = 0; i < playerCount; i++) {
+            if (i == vi - 1) {
+                continue
+            }
+            for (let j = 0; j < playerCardCounts[i]; j++) {
+                let card = Array.from(Array.from($(".player-zone:not(#center-zone)"))[i].children[1].children)[j]
+                if (card.getAttribute("data-shielded") == "0") {
+                    order.push(card)
+                }
+            }
+        }
+        if (!right) {
+            order.reverse()
+        }
+        return order
+    }
+
+    function endPhase() {
+        expecting = null
+        action = null
+        if (usingTimer && countdownInterval != null) {
+            window.clearInterval(countdownInterval)
+            countdownInterval = null
+        }
+        thisDetailedPhase = detailedPhases[nthOfDetailedPhases]
+        if (thisDetailedPhase.nActiveCards > 0) {
+            const entryValues = Array.from(document.getElementsByClassName("entry-p")).map((y) => Array.from(y.children).map((x) => `<span class="${y.className.match(/player\d+/)[0]}">${x.value}</span>`).join(";"))
+            const entries = Array.from(document.getElementsByClassName("entry-p")).map((y) => Array.from(y.children).map((x) => decodeN(x.value, Number(x.getAttribute("data-entryid")))))
+            let actions = []
+            for (let i = 0; i < playerCount; i++) {
+                for (let j = 0; j < thisDetailedPhase.everyoneActive[i].activeCards.length; j++) {
+                    actions.push({player: i + 1, action: thisDetailedPhase.everyoneActive[i].activeCards[j], data: entries[i][j] - 1})
+                }
+            }
+            actions.sort((a,b) => a.action.roleID > b.action.roleID)
+            document.getElementById("card-zone").className = ""
+            document.getElementById("card-zone").innerHTML = backupCardZone
+            try {
+                for (let i = 0; i < actions.length; i++) {
+                    // if nondoppy or firstdoppy, perform as usual
+                    if (actions[i].action.roleID != doppelganger.ID || actions[i].action.roleViewed == doppelganger.ID) {
+                        performInternalAction(actions[i])
+                    // else, if our time to shine AND ACTIVE, perform roleviewed
+                    } else if (roles[doppelgangerBecame].active && thisDetailedPhase.phase == roles[doppelgangerBecame].doppyPhase) {
+                        actions[i].action = {roleID: doppelgangerBecame}
+                        performInternalAction(actions[i], true)
+                    }
+                }
+                document.getElementById(`expecting-${phases[thisDetailedPhase.phase].name.toLowerCase()}-encodings`).innerHTML = `(Action encodings from the ${phases[thisDetailedPhase.phase].name} phase: <span class="entry-summary">${entryValues.join(";")}</span>.)`
+            } catch (e) { // if any error codes fuck up, do this
+                console.log(e)
+                document.getElementById("card-zone").innerHTML = backupCardZone
+                document.getElementById("card-zone").className = "inactive-card-zone"
+                let currentButton = document.getElementById("next-button").outerHTML
+                document.getElementById("next-button").innerHTML = "Bad action codes!"
+                document.getElementById("next-button").style.background = "var(--wolfteam-bg)"
+                document.getElementById("next-button").style.animation = "cardtilt 0.48s ease-in-out"
+
+                window.setTimeout(function(){
+                    document.getElementById("next-button").style.background = phases[detailedPhases[nthOfDetailedPhases].phase].color
+                }, 480)
+                window.setTimeout(function(){
+                    document.getElementById("next-button").outerHTML = currentButton
+                }, 580)
+                return
+            }
+        } else {
+            document.getElementById("card-zone").className = ""
+        }
+        console.log(`Finishing ${phases[thisDetailedPhase.phase].class}`)
+        nthOfDetailedPhases++
+        myRecordsThisPhase = []
+        currentRecord = 0
+        if (nthOfDetailedPhases < detailedPhases.length) {
+            if (thisDetailedPhase.phase == somnyPhase.ID || thisDetailedPhase.phase == twoppyPhase.ID) {
+                startPhase(500)
+            } else {
+                startPhase()
+            }
+        } else {
+            console.log("Ending night")
+            endAll()
+        }
+    }
+
+    function endAll() {
+        mode = DAY
+        if (detailedPhases.length > 0) {
+            document.getElementsByClassName("phase-arrow")[detailedPhases.length - 1].innerHTML = ""        
+        }
+        let myArtifacts = document.getElementsByClassName("artifact-spot")[mePlayer - 1].children
+        let iHaveAnArtifact = (myArtifacts.length > 0)
+        if (iHaveAnArtifact) {
+            document.getElementsByClassName("artifact-spot")[mePlayer - 1].children[0].id = "my-artifact"
+            script.unshift({direct: true, line: "You hide your artifact. You wouldn't want anyone seeing <i>that</i>, after all...", action: HIDE_MY_ARTIFACT, expecting: null})
+            script.unshift({direct: true, line: 8, action: VIEW_MY_ARTIFACT, expecting: null})
+            script.unshift({direct: true, line: `Everyone wakes up. ${continueStr}`, action: null, expecting: null})
+            nextLine()
+        } else {
+            transmission("Everyone wakes up.")
+        }
+        let stopCursoring = Array.from($("#card-zone .card, #card-zone .artifact"))
+        for (let i = 0; i < stopCursoring.length; i++) {
+            stopCursoring[i].style.cursor = "default"
+        }
+        let pipset = `<section id="pips">`
+        for (let i = 0; i < nCards; i++) {
+            pipset += `<span class="pip-container"><span oncontextmenu="greyPip(this); return false" class="pip artifact ${["villageteam", "wolfteam", "tannerteam"][rolesInPlay[i].team]}"><span class="artifact-icon">${rolesInPlay[i].icon}</span></span></span> `
+        }
+        pipset += `</section>`
+        document.getElementById("card-zone").innerHTML += pipset
+        document.getElementById("down-button").style.display = "block"
+        document.getElementById("complete").innerHTML = `<p id="next-button" style="background: var(--doppyphase); color: white; cursor: pointer; font-size: large" onclick="votingTime()">ALL PLAYERS ARE READY TO VOTE</p>`
+        //document.getElementById("complete").innerHTML = `<p id="next-button" onclick="tryRevealAll()" style="background: var(--doppyphase); color: white; cursor: pointer; font-size: large">REVEAL ALL</p>`
+    }
+
+    function votingTime() {
+        let entriesHTML = `<div id="voting-zone">`
+        othersEntries = 0
+        for (let i = 0; i < playerCount; i++) {
+            entriesHTML += `<p class="entry-p player${i + 1}" style="font-size: medium">${(i + 1 == mePlayer ? "&gt; " : "")}${(playerNames[i].length == 0) ? "no-name nelly" : playerNames[i]} `
+            if (i == mePlayer - 1) {
+                entriesHTML += `<input type="text" style="font-size: medium" class="entry" id="my-vote" data-entryID="${entrySeed++}" readonly> `
+            } else {
+                othersEntries++
+                entriesHTML += `<input type="text" style="font-size: medium" class="entry" ${caseInsensitive ? `oninput="this.value = this.value.toUpperCase(); ifFullGoTo(this, ${othersEntries})"` : `oninput="ifFullGoTo(this, ${othersEntries})"`}data-entryID="${entrySeed++}"> `
+            }
+            entriesHTML += `</p>`
+        }
+        entriesHTML += `<p id="next-button" style="font-size: large; background: var(--twoppyphase); cursor: pointer" onclick="tally()">TALLY VOTES</p></div>`
+
+        let playerZones = Array.from($(".player-zone:not(#center-zone)"))
+        for (let i = 0; i < playerCount; i++) {
+            playerZones[i].innerHTML += `<p style="text-align: center;" class="vote-button"><br><u style="font-weight: bold; cursor: pointer;" onclick="voteFor(${i + 1})">VOTE</u><br></p>`
+        }
+
+        document.getElementById("complete").innerHTML = entriesHTML
+        newEntryMax(playerCount + 1)
+    }
+
+    function voteFor(playerID) {
+        let key = Number(document.getElementById("my-vote").getAttribute('data-entryid'))
+        document.getElementById("my-vote").value = encodeN(playerID, key)
+        let playerZones = Array.from($(".vote-button"))
+        for (let i = playerCount - 1; i >= 0; i--) {
+            playerZones[i].remove()
+        }
+    }
+
+    function tally(duration = 500) {
+        const entryElements = Array.from($("#voting-zone .entry"))
+        const entries = entryElements.map((x) => x.value)
+        const keys = entryElements.map((x) => x.getAttribute('data-entryid'))
+        let votes = []
+        console.log(entries, keys)
+        try {
+            for (let i = 0; i < playerCount; i++) {
+                let myVote = Number(decodeN(entries[i], Number(keys[i])))
+                if (Number.isNaN(myVote) || myVote <= 0 || myVote > playerCount) {
+                    throw new Error(`Vote from player ${i+1} decodes to ${myVote}`)
+                } else {
+                    votes.push({voteFrom: i + 1, voteFor: myVote})
+                }
+            }
+        } catch (e) {
+            let currentButton = document.getElementById("next-button").outerHTML
+            document.getElementById("next-button").innerHTML = "Bad votes!"
+            document.getElementById("next-button").style.background = "var(--wolfteam-bg)"
+            document.getElementById("next-button").style.animation = "cardtilt 0.48s ease-in-out"
+
+            window.setTimeout(function(){
+                document.getElementById("next-button").style.background = "var(--twoppyphase)"
+            }, 480)
+            window.setTimeout(function(){
+                document.getElementById("next-button").outerHTML = currentButton
+            }, 580)
+            return
+        }
+        window.setTimeout(function(){
+            document.getElementById("voting-zone").innerHTML = ""
+            document.getElementById("terminal").innerHTML = ""
+            document.getElementById("terminal-container").style.display = "block"
+            document.getElementById("down-button").style.display = "none"
+            document.getElementById("up-button").style.display = "none"
+            document.getElementById("bottom-row").style.display = "block"
+            document.getElementById("configs-container").style.height = "var(--body-height)"
+            let playerZoneNames = Array.from(document.getElementsByClassName("zone-name"))
+            for (let i = 1; i < playerZoneNames.length; i++) {
+                playerZoneNames[i].innerHTML += "<span class=\"knives\"></span>"
+            }
+            let voteIndex = 0
+            let voteCountMeaningDeath = 0
+            let votesFor = new Array(playerCount).fill(0)
+            let evalInterval = window.setInterval(function(){
+                let newestVote = `${playerRepresentation(votes[voteIndex].voteFrom)} voted for ${playerRepresentation(votes[voteIndex].voteFor)}! <span class="count">(${++votesFor[votes[voteIndex].voteFor - 1]})</span>`
+                transmission(newestVote)
+                if (votesFor[votes[voteIndex].voteFor - 1] > voteCountMeaningDeath) {
+                    voteCountMeaningDeath = votesFor[votes[voteIndex].voteFor - 1]
+                }
+                let thisPlayerZone = Array.from($(".player-zone"))[votes[voteIndex].voteFor]
+                thisPlayerZone.scrollIntoView({behavior: "smooth"})
+                thisPlayerZone.className += " jiggling"
+                thisPlayerZone.addEventListener('animationend', () => {
+                    thisPlayerZone.className = thisPlayerZone.className.replace(" jiggling", "")
+                }, { once: true });
+                Array.from(document.getElementsByClassName("knives"))[votes[voteIndex].voteFor - 1].innerHTML += `<span title="Vote from ${describePlayerInternal(votes[voteIndex].voteFrom)}">🗡️</span> `
+                voteIndex++
+                if (voteIndex == playerCount) {
+                    window.clearInterval(evalInterval)
+                    let dying = []
+                    if (voteCountMeaningDeath > 1) {
+                        for (let i = 0; i < playerCount; i++) {
+                            if (votesFor[i] == voteCountMeaningDeath) {
+                                dying.push(i + 1)
+                            }
+                        }
+                    }
+                    if (dying.length == 0) {
+                        window.setTimeout(function(){
+                            transmission("No one has died!")
+                            document.getElementById("complete").innerHTML = `<p id="next-button" onclick="revealAll()" style="background: var(--doppyphase); color: white; cursor: pointer; font-size: large">REVEAL ALL</p>`
+                        }, duration)
+                    } else {
+                        let dyingIndex = 0
+                        let killInterval = window.setInterval(function(){
+                            transmission(`${playerRepresentation(dying[dyingIndex])} has died!`)
+                            let thisPlayerZone = Array.from($(".player-zone"))[dying[dyingIndex]]
+                            thisPlayerZone.scrollIntoView({behavior: "smooth"})
+                            thisPlayerZone.className += " jiggling"
+                            thisPlayerZone.addEventListener('animationend', () => {
+                                thisPlayerZone.className = thisPlayerZone.className.replace(" jiggling", "")
+                            }, { once: true });
+                            Array.from(document.getElementsByClassName("knives"))[dying[dyingIndex] - 1].innerHTML += "☠️"
+                            dyingIndex++
+                            if (dyingIndex == dying.length) {
+                                window.clearInterval(killInterval)
+                                document.getElementById("complete").innerHTML = `<p id="next-button" onclick="revealAll()" style="background: var(--doppyphase); color: white; cursor: pointer; font-size: large">REVEAL ALL</p>`
+                            }
+                        }, duration * 2)
+                    }
+                }
+            },duration)
+        },20)
+    }
+
+    function playerRepresentation(i) {
+        return `<span class="player${i}">${(playerNames[i - 1].length == 0) ? "no-name nelly" : playerNames[i - 1]}</span> (<span class="player${i}">player ${i}</span>)`
+    }
+
+    function greyPip(pip) {
+        if (pip.className.match(/greypip /)) {
+            pip.className = pip.className.replace(/greypip /, "")
+        } else {
+            pip.className = pip.className.replace(/pip/, "pip greypip")
+        }
+    }
+
+    function revealAll() {
+        document.getElementById("next-button").remove()
+        let unknownCards = Array.from($("#card-zone .card.unknown"))
+        for (let i = 0; i < unknownCards.length; i++) {
+            let role = Number(unknownCards[i].getAttribute("data-roleid"))
+            let element = unknownCards[i]
+            let card = {element: element, role: role, owner: Number(element.getAttribute("data-ownerid")), childid: Number(element.getAttribute("data-childid"))}
+            privatePermaflipCard(card, i)
+        }
+        window.setTimeout(function(){
+        let unknownArtifacts = Array.from($("#card-zone .artifact.unknown"))
+        for (let i = 0; i < unknownArtifacts.length; i++) {
+            unknownArtifacts[i].outerHTML = artifacts[Number(unknownArtifacts[i].getAttribute("data-artifactid"))].element.outerHTML
+        }}, 250 * 2 - 50 - 50)
+    }
+
+    function describeKnownCardInternal(card) {
+        let owner = card.owner, childID = card.childID
+        if (owner == 0) {
+            return `the ${ordinals[childID]} center card`
+        } else {
+            return `${describePlayerInternal(owner)}'s ${ordinals[childID + 1]} card`
+        }
+    }
+
+    function describeCardInternal(cardIndex) {
+        let allCounts = [centerCardCount, ...playerCardCounts]
+        let owner = 0, childIndex = 0
+        for (let i = 0; i < cardIndex; i++) {
+            childIndex++
+            if (childIndex == allCounts[owner]) {
+                childIndex = 0
+                owner++
+            }
+        }
+        if (owner == 0) {
+            return `the ${ordinals[childIndex + 1]} center card`
+        } else {
+            return `${describePlayerInternal(owner)}'s ${ordinals[childIndex + 1]} card`
+        }
+    }
+
+    function describePlayerInternal(playerIndex) {
+        return `${(playerNames[playerIndex - 1].length == 0) ? "no-name nelly" : playerNames[playerIndex - 1]} (player ${playerIndex})`
+    }
+
+    function performInternalAction(description, isDoppy = false) { // isDoppy flag is largely irrelevant but matters for PI (only?) No
+        let player = description.player, role = description.action, data = description.data
+        console.log(`    Player: ${describePlayerInternal(player)}; Role: ${(isDoppy ? "Doppy-" : "")}${roles[role.roleID].name}; Data: ${data}`)
+        switch (role.roleID) { // note: if doppy, this is set to the default action. iirc all doppy actions internally act the same as nondoppy actions. with verification for revvy and cury, should be ok. edit: PI lol. but beside that. edit: robber lol. but beside that. also drunk.
+            case sentinel.ID:
+                let protectedCard = Array.from($("#card-zone .card"))[data]
+                if (mePlayer != Number(protectedCard.parentElement.parentElement.className.match(/\d+/)[0])) {
+                    nUnshieldedOtherPlayerCards--
+                }
+                let protectedRole = Number(protectedCard.getAttribute("data-roleid"))
+                protectedCard.outerHTML = shieldedCard.outerHTML.replace("PROTECTED_ROLE", protectedRole)
+                document.getElementById("artifact-selection").children[document.getElementById("artifact-selection").children.length - 1].remove()
+                console.log(`        Protected ${describeCardInternal(data)}.`)
+                break
+            case doppelganger.ID:
+                doppelgangerBecame = Number(Array.from($("#card-zone .card"))[data].getAttribute("data-roleid"))
+                if (doppelgangerBecame == werewolf.ID && !playerIsWolf[player - 1]) {
+                    playerIsWolf[player - 1] = true
+                } else if (doppelgangerBecame == mason.ID && !playerIsMason[player - 1]) {
+                    playerIsMason[player - 1] = true
+                }
+                console.log(`        Viewed ${describeCardInternal(data)}.`)
+                console.log(`        Doppelganger became ${roles[doppelgangerBecame].name}.`)
+                break
+            case pi.ID:
+                if (!isDoppy) {
+                    PIBecame = data
+                    console.log(`        Joined ${["village", "wolves", "tanner"][Number(data)]} team.`)
+                } else {
+                    let team = data
+                    if (team == 0) { // village
+                        doppelgangerBecame = villager.ID
+                    } else if (team == 1) { // werewolf
+                        doppelgangerBecame = werewolf.ID
+                    } else { // tanner
+                        doppelgangerBecame = tanner.ID
+                    }
+                    console.log(`        Joined ${["village", "wolves", "tanner"][Number(data)]} team.`)
+                }
+                break
+            case robber.ID:
+                if (data == -1) {
+                    console.log(`        Did not act.`)
+                    return false
+                }
+                if (isDoppy) {
+                    swapContentElements(Array.from($("#card-zone .card"))[data], Array.from(Array.from($(".card-selection"))[doppelgangerLocation.owner].children)[doppelgangerLocation.childID]) // doppy, card as archived above
+                    console.log(`        Swapped ${describeCardInternal(data)} with ${describeKnownCardInternal(doppelgangerLocation)} (doppelganger).`)
+                } else {
+                    swapContentElements(Array.from($("#card-zone .card"))[data], Array.from(Array.from($(".card-selection"))[robberLocation.owner].children)[robberLocation.childID]) // robber, card as archived above
+                    console.log(`        Swapped ${describeCardInternal(data)} with ${describeKnownCardInternal(robberLocation)} (robber).`)
+                }
+                break
+            case witch.ID:
+                if (data == -1) {
+                    console.log(`        Did not act.`)
+                    return false
+                }
+                let centerCardID = Math.floor(data / nCards)
+                let playerCardID = data % nCards
+                swapContentElements(Array.from($("#card-zone .card"))[centerCardID], Array.from($("#card-zone .card"))[playerCardID])
+                console.log(`        Swapped ${describeCardInternal(centerCardID)} with ${describeCardInternal(playerCardID)}.`)
+                break
+            case troublemaker.ID:
+                if (data == -1) {
+                    console.log(`        Did not act.`)
+                    return false
+                }
+                let card1ID = Math.floor(data / nCards)
+                let card2ID = data % nCards
+                swapContentElements(Array.from($("#card-zone .card"))[card1ID], Array.from($("#card-zone .card"))[card2ID])
+                console.log(`        Swapped ${describeCardInternal(card1ID)} with ${describeCardInternal(card2ID)}.`)
+                break
+            case vi.ID:
+                if (data == -1) {
+                    console.log(`        Did not act.`)
+                    return false
+                }
+                let right = (data == 1)
+                console.log(`        Swapped all cards ${right ? "right" : "left"}.`)
+                enactVI(right, player)
+                break
+            case drunk.ID:
+                if (data == -1) {
+                    console.log(`        Did not act.`)
+                    return false
+                }
+                if (isDoppy) {
+                    swapContentElements(Array.from($("#card-zone .card"))[data], Array.from(Array.from($(".card-selection"))[doppelgangerLocation.owner].children)[doppelgangerLocation.childID]) // doppy, card as archived above
+                    console.log(`        Swapped ${describeCardInternal(data)} with ${describeKnownCardInternal(doppelgangerLocation)} (doppelganger).`)
+                } else {
+                    swapContentElements(Array.from($("#card-zone .card"))[data], Array.from(Array.from($(".card-selection"))[drunkLocation.owner].children)[drunkLocation.childID]) // robber, card as archived above
+                    console.log(`        Swapped ${describeCardInternal(data)} with ${describeKnownCardInternal(drunkLocation)} (drunk).`)
+                }
+                break
+            case revealer.ID:
+                let role = Number(Array.from($("#card-zone .card"))[data].getAttribute("data-roleid"))
+                if (roles[role].team == 0) {
+                    window.setTimeout(function(){
+                        let element = Array.from($("#card-zone .card"))[data]
+                        let card = {element: element, role: role, owner: Number(element.getAttribute("data-ownerid")), childid: Number(element.getAttribute("data-childid"))}
+                        permaflipCard(card)
+                    }, 20)
+                    console.log(`        Revealed ${describeCardInternal(data)}.`)
+                } else {
+                    console.log(`        Did not reveal ${describeCardInternal(data)}; too evil.`)
+                }
+                break
+            case curator.ID:
+                let a1ID, recipientID, a2ID
+                if (isDoppy && curatorFlip && nArtifacts == 2) {
+                    curatorFlip = false
+                }
+                if (curatorFlip) {
+                    a2ID = data % nArtifacts
+                    data = Math.floor(data / nArtifacts)
+                }
+                recipientID = data % playerCount
+                a1ID = Math.floor(data / playerCount)
+
+                if (!isDoppy) {
+                    document.getElementsByClassName("select-player")[recipientID].remove()
+                }
+                
+                Array.from(document.getElementsByClassName("artifact-spot"))[recipientID].innerHTML = unknownArtifact.outerHTML.replace(/onclick=".*?"/, "").replace("artifactid?", shuffledArtifacts[a1ID].ID) + " "
+                document.getElementById("artifact-selection").children[a1ID].outerHTML = notifact
+                console.log(`        Gave the ${ordinals[a1ID + 1]} artifact to ${describePlayerInternal(recipientID + 1)}.`)
+
+                if (curatorFlip) {
+                    Array.from(document.getElementById("artifact-selection").children)[a2ID].outerHTML = artifacts[shuffledArtifacts[a2ID].ID].element.outerHTML.replace(/CHILD_INDEX/, a2ID)
+                    console.log(`        Revealed the ${ordinals[a2ID + 1]} artifact.`)
+                }
+                break
+            default:
+                break
+        }
+    }
+
+    function saveRecordAs(n) {
+        myRecordsThisPhase.push(n)
+        currentRecord = 0
+    }
+
+    function saveRecord() {
+        myRecordsThisPhase.push(currentRecord)
+        currentRecord = 0
+    }
+
+    function describeCard(card, addNew = false) {
+        let description = ""
+        if (Number(card.owner) == 0) {
+            description = `the ${ordinals[Number(card.childID) + 1]} center card`
+        } else if (Number(card.owner) != mePlayer) {
+            description = `<span class="player${Number(card.owner)}">${(playerNames[Number(card.owner) - 1].length == 0) ? "no-name nelly" : playerNames[Number(card.owner) - 1]}</span> (<span class="player${card.owner}">player ${card.owner}</span>)'s ${ordinals[Number(card.childID) + 1]} card`
+        } else {
+            if (!addNew) {
+                description = `<span class="player${Number(card.owner)}">your</span> ${ordinals[Number(card.childID) + 1]} card`
+            } else {
+                description = `<span class="player${Number(card.owner)}">your</span> new ${ordinals[Number(card.childID) + 1]} card`
+            }
+        }
+        return description
+    }
+
+    function showCard(card) {
+        return terminalClean(roles[card.role].element.outerHTML)
+    }
+
+    function performAction(input) {
+        switch (action) {
+            case PROTECT: // sentinel
+                transmission(`You protect ${describeCard(input)}. ${continueStr}`)
+                input.element.outerHTML = shieldedCard.outerHTML
+                document.getElementById("artifact-selection").children[document.getElementById("artifact-selection").children.length - 1].remove()
+                saveRecord()
+                break
+            case BECOME:
+                transmission(`You view ${describeCard(input)}: ${showCard(input)} ${continueStr}`)
+                flipCard(input)
+                if (roles[input.role].doppyPhase == doppyPhase.ID) {
+                    script[script.length - 2].roleViewed = input.role
+                    detailedPhases[detailedPhases.length - 1].myRoles = []
+                } else if (roles[input.role].doppyPhase == twoppyPhase.ID) {
+                    script.splice(script.length - 2, 1)
+                    detailedPhases[detailedPhases.length - 1].myRoles[0].roleViewed = input.role
+                } else if (roles[input.role].doppyPhase == seeyPhase.ID) {
+                    script.splice(script.length - 2, 1)
+                    detailedPhases[detailedPhases.length - 1].myRoles = []
+                    let seey
+                    for (let i = 0; i < detailedPhases.length; i++) {
+                        if (detailedPhases[i].phase == seeyPhase.ID) {
+                            seey = i
+                            break
+                        }
+                    }
+                    if (input.role == werewolf.ID && !playerIsWolf[mePlayer - 1]) {
+                        playerIsWolf[mePlayer - 1] = true
+                        detailedPhases[seey].myRoles.unshift({roleID: doppelganger.ID, roleViewed: werewolf.ID})
+                    } else if (input.role == mason.ID && !playerIsMason[mePlayer - 1]) {
+                        playerIsMason[mePlayer - 1] = true
+                        if (!playerIsWolf[mePlayer - 1]) {
+                            detailedPhases[seey].myRoles.unshift({roleID: doppelganger.ID, roleViewed: mason.ID})
+                        } else {
+                            detailedPhases[seey].myRoles.splice(1, 0, {roleID: doppelganger.ID, roleViewed: mason.ID})
+                        }
+                    }
+                } else if (roles[input.role].doppyPhase == nonePhase.ID) {
+                    script.splice(script.length - 2, 1)
+                    detailedPhases[detailedPhases.length - 1].myRoles = []
+                }
+                saveRecord()
+                break
+            case VIEW_CARD:
+                transmission(`You view ${describeCard(input)}: ${showCard(input)} ${continueStr}`)
+                flipCard(input)
+                break
+            case VIEW_CARD_AND_SHIFT:
+                script.shift()
+                transmission(`You view ${describeCard(input)}: ${showCard(input)} ${continueStr}`)
+                flipCard(input)
+                break
+            case VIEW_CENTER_AS_SEER:
+                transmission(`You view ${describeCard(input)}: ${showCard(input)} ${continueStr}`)
+                flipCard(input)
+                cardsViewedAsSeer++
+                if (cardsViewedAsSeer <= seerViewCount) {
+                    script.unshift(roleScripts[seer.ID].script[2])
+                }
+                break
+            case PI_VIEW:
+                transmission(`You view ${describeCard(input)}: ${showCard(input)} ${continueStr}`)
+                flipCard(input)
+                if (roles[input.role].team > 0 && cardsViewedAsPI == 1) {
+                    script.shift()
+                }
+                if (roles[input.role].team == 1) { // wolf
+                    script.unshift({direct: true, line: `You are now on the <span class="wolfteam">wolves</span> team! ${continueStr}`, expecting: null, action: null})
+                    PIBecame = 1
+                    saveRecordAs(1)
+                } else if (roles[input.role].team == 2) { // tanner
+                    script.unshift({direct: true, line: `You are now on the <span class="tannerteam">tanner</span> team! ${continueStr}`, expecting: null, action: null})
+                    PIBecame = 2
+                    saveRecordAs(2)
+                } else if (cardsViewedAsPI == 1) { // village on first try
+                    cardsViewedAsPI++
+                } else { // village on second try
+                    script.unshift({direct: true, line: `You remain on the <span class="villageteam">village</span> team! ${continueStr}`, expecting: null, action: null})
+                    PIBecame = 0
+                    saveRecordAs(0)
+                }
+                break
+            case ROB:
+                animateSwap(input, robberLocation)
+                swapContent(input, robberLocation)
+                console.log(myRecordsThisPhase)
+                saveRecord()
+                window.setTimeout(function(){transmission(`You swap ${describeCard(input)} with ${describeCard(robberLocation)}. ${continueStr}`)}, 250)
+                break
+            case DOPPY_ROB:
+                animateSwap(input, doppelgangerLocation)
+                swapContent(input, doppelgangerLocation)
+                saveRecord()
+                window.setTimeout(function(){transmission(`You swap ${describeCard(input)} with ${describeCard(doppelgangerLocation)}. ${continueStr}`)}, 250)
+                break
+            case WITCH_VIEW:
+                transmission(`You view ${describeCard(input)}: ${showCard(input)} ${continueStr}`)
+                flipCard(input)
+                oldData = currentRecord
+                break
+            case WITCH:
+                animateSwap(input, {owner: 0, childID: oldData})
+                saveRecord()
+                window.setTimeout(function(){transmission(`You swap ${describeCard(input)} with ${describeCard({owner: 0, childID: oldData})}. ${continueStr}`)}, 250)
+                break
+            case TRUBBY_STORE:
+                oldData = input
+                transmission(`You choose ${describeCard(input)}.`)
+                action = TRUBBY_SWAP
+                expecting = OTHER_PLAYER_CARD
+                takingSelection = true
+                break
+            case TRUBBY_SWAP:
+                animateSwap(input, oldData)
+                saveRecord()
+                window.setTimeout(function(){transmission(`You swap ${describeCard(oldData)} with ${describeCard(input)}. ${continueStr}`)}, 250)
+                break
+            case DRINK:
+                saveRecord()
+                animateSwap(input, drunkLocation)
+                window.setTimeout(function(){transmission(`You swap ${describeCard(input)} with ${describeCard(drunkLocation)}. ${continueStr}`)}, 250)
+                break
+            case DOPPY_DRINK:
+                saveRecord()
+                animateSwap(input, doppelgangerLocation)
+                window.setTimeout(function(){transmission(`You swap ${describeCard(input)} with ${describeCard(doppelgangerLocation)}. ${continueStr}`)}, 250)
+                break
+            case REVEAL:
+                oldData = input
+                saveRecord()
+                permaflipCard(input)
+                transmission(`You view ${describeCard(input)}: ${showCard(input)} ${continueStr}`)
+                if (roles[input.role].team == 0) {
+                    script.unshift({direct: true, line: `This role is on the <span class="villageteam">village</span> team! You leave it face-up. ${continueStr}`, expecting: null, action: null})
+                } else if (roles[input.role].team == 1) {
+                    script.unshift({direct: true, line: `This role is on the <span class="wolfteam">wolves</span> team! You flip it back over. ${continueStr}`, expecting: null, action: UNREVEAL})
+                } else {
+                    script.unshift({direct: true, line: `This role is on the <span class="tannerteam">tanner</span> team! You flip it back over. ${continueStr}`, expecting: null, action: UNREVEAL})
+                }
+                break
+            case HAVE_ARTIFACT:
+                oldData = input
+                nextLine()
+                break
+            case DOPPY_GIVE_ARTIFACT:
+                if (curatorFlip && nArtifacts == 2) {
+                    curatorFlip = false
+                    nextLine(true)
+                    script.unshift({direct: true, line: `No artifacts to reveal! ${continueStr}`, expecting: null, action: null})
+                }
+            case GIVE_ARTIFACT:
+                let selectPlayers = Array.from(document.getElementsByClassName("select-player"))
+                for (let i = 0; i < selectPlayers.length; i++) {
+                    selectPlayers[i].style.display = "none"
+                }
+                Array.from(document.getElementsByClassName("artifact-spot"))[input.playerID - 1].innerHTML = unknownArtifact.outerHTML.replace(/onclick=".*?"/, "").replace("artifactid?", oldData.content)
+                oldData.element.outerHTML = notifact
+                transmission(`You give the ${ordinals[Number(oldData.childID) + 1]} artifact to <span class="player${input.playerID}">${(playerNames[input.playerID - 1].length == 0) ? "no-name nelly" : playerNames[input.playerID - 1]}</span> (<span class="player${input.playerID}">player ${input.playerID}</span>). ${continueStr}`)
+                if (!curatorFlip) {
+                    saveRecord()
+                    nextLine(true)
+                }
+                break
+            case FLIP_ARTIFACT:
+                Array.from(document.getElementById("artifact-selection").children)[input.childID].outerHTML = artifacts[Number(input.content)].element.outerHTML
+                saveRecord()
+                transmission(`You reveal the ${ordinals[Number(input.childID) + 1]} artifact: ${artifacts[Number(input.content)].element.outerHTML} ${continueStr}`)
+                break
+            default:
+                break
+        }
+    }
+
+    let currentlyFlippedContainer = null, oldFlippedHTML, unflipping = false
+
+    function swapContentElements(elementA, elementB) {
+        let temp = elementA.getAttribute('data-roleid')
+        elementA.setAttribute('data-roleid', elementB.getAttribute('data-roleid'))
+        elementB.setAttribute('data-roleid', temp)
+    }
+
+    function swapContent(a, b) {
+        elementA = Array.from(Array.from($(".card-selection"))[a.owner].children)[a.childID]
+        elementB = Array.from(Array.from($(".card-selection"))[b.owner].children)[b.childID]
+        let temp = elementA.getAttribute('data-roleid')
+        elementA.setAttribute('data-roleid', elementB.getAttribute('data-roleid'))
+        elementB.setAttribute('data-roleid', temp)
+    }
+
+    function animateSwap(a, b) {
+        elementA = Array.from(Array.from($(".card-selection"))[a.owner].children)[a.childID]
+        elementB = Array.from(Array.from($(".card-selection"))[b.owner].children)[b.childID]
+        animateFromAToB(elementA, elementB)
+        animateFromAToB(elementB, elementA)
+    }
+
+    function animateFromAToB(a, b, duration = 250) {
+        aRect = a.getBoundingClientRect()
+        bRect = b.getBoundingClientRect()
+        a.animate({
+            transform: `translate(${bRect.x - aRect.x}px, ${bRect.y - aRect.y}px)`
+        }, {duration: duration, easing: "ease-in-out"})
+        window.setTimeout(function(){a.style.transform = "none"},duration + 50)
+    }
+
+    function unflipCard(takingCard = false, card = null, duration = 250, offset = 50) {
+        unflipping = true
+        if (takingCard) {
+            oldFrontHTML = card.element.outerHTML
+            card.element.outerHTML = `<span id="turning"></span>`
+            currentlyFlippedContainer = document.getElementById("turning")
+            currentlyFlippedContainer.innerHTML = oldFrontHTML
+        }
+        currentlyFlippedContainer.animate({
+            transform: "rotate3d(0, 1, 1, -180deg)"
+        }, {duration: duration, easing: "ease-in-out"})
+        window.setTimeout(function(){
+            currentlyFlippedContainer.innerHTML = oldFlippedHTML
+            currentlyFlippedContainer.style.transform = "rotate3d(0, 1, 1, 180deg)"
+            currentlyFlippedContainer.animate({
+                transform: "rotate3d(0, 1, 1, 0deg)"
+            }, {duration: duration, easing: "ease-in-out"})
+            window.setTimeout(function(){
+                currentlyFlippedContainer.style.transform = "rotate3d(0, 1, 1, 0deg)"
+                currentlyFlippedContainer.outerHTML = oldFlippedHTML
+                currentlyFlippedContainer = null
+                unflipping = false
+            }, duration - offset)
+        }, duration - offset)
+    }
+
+    function flipCard(card, duration = 250, offset = 50) {
+        oldFlippedHTML = card.element.outerHTML
+        card.element.outerHTML = `<span id="turning"></span>`
+        currentlyFlippedContainer = document.getElementById("turning")
+        currentlyFlippedContainer.innerHTML = oldFlippedHTML
+
+        currentlyFlippedContainer.animate({
+            transform: "rotate3d(0, 1, 1, 180deg)"
+        }, {duration: duration, easing: "ease-in-out"})
+
+        window.setTimeout(function(){
+            currentlyFlippedContainer.innerHTML = roles[card.role].element.outerHTML.replace(/selectCard\(.*?\); ?/g, "")
+            currentlyFlippedContainer.style.transform = "rotate3d(0, 1, 1, -180deg)"
+            currentlyFlippedContainer.animate({
+                transform: "rotate3d(0, 1, 1, 0deg)"
+            }, {duration: duration, easing: "ease-in-out"})
+            window.setTimeout(function(){
+                currentlyFlippedContainer.style.transform = "rotate3d(0, 1, 1, 0deg)"
+            }, duration - offset)
+        }, duration - offset)
+    }
+
+    function privatePermaflipCard(card, id, duration = 250, offset = 50) {
+        let myOldFlippedHTML = card.element.outerHTML
+        card.element.outerHTML = `<span id="turning${id}" style="display: inline-block"></span>`
+        let myContainer = document.getElementById(`turning${id}`)
+        myContainer.innerHTML = myOldFlippedHTML
+
+        myContainer.animate({
+            transform: "rotate3d(0, 1, 1, 180deg)"
+        }, {duration: duration, easing: "ease-in-out"})
+
+        window.setTimeout(function(){
+            let frontFace = roles[card.role].element.outerHTML.replace(/selectCard\(.*?\); ?/g, "")
+            if (card.role == pi.ID) {
+                if (PIBecame == 1) {
+                    frontFace = frontFace.replace("villageteam", "wolfteam")
+                } else if (PIBecame == 2) {
+                    frontFace = frontFace.replace("villageteam", "tannerteam")
+                }
+            } else if (card.role == doppelganger.ID) {
+                if (doppelgangerBecame == werewolf.ID) {
+                    frontFace = frontFace.replace("villageteam", "wolfteam")
+                } else if (doppelgangerBecame == tanner.ID) {
+                    frontFace = frontFace.replace("villageteam", "tannerteam")
+                }
+            }
+            myContainer.innerHTML = frontFace
+            myContainer.style.transform = "rotate3d(0, 1, 1, -180deg)"
+            myContainer.animate({
+                transform: "rotate3d(0, 1, 1, 0deg)"
+            }, {duration: duration, easing: "ease-in-out"})
+            window.setTimeout(function(){
+                myContainer.style.transform = "rotate3d(0, 1, 1, 0deg)"
+            }, duration - offset)
+        }, duration - offset)
+
+        window.setTimeout(function(){
+            myContainer.style.transform = "rotate3d(0, 1, 1, 0deg)"
+            myContainer.outerHTML = myContainer.innerHTML
+            myContainer = null
+            card.element = Array.from(document.getElementsByClassName("player-zone"))[card.owner].children[1].children[card.childID]
+        }, 2 * duration - offset)
+    }
+
+    function permaflipCard(card, duration = 250, offset = 50) {
+        flipCard(card)
+        window.setTimeout(function(){
+            currentlyFlippedContainer.style.transform = "rotate3d(0, 1, 1, 0deg)"
+            currentlyFlippedContainer.outerHTML = currentlyFlippedContainer.innerHTML
+            currentlyFlippedContainer = null
+            card.element = Array.from(document.getElementsByClassName("player-zone"))[card.owner].children[1].children[card.childID]
+        }, 2 * duration - offset)
+    }
+
+    function unmakeOptions() {
+        for (let i = document.getElementsByClassName("terminal-option").length - 1; i >= 0; i--) {
+            document.getElementsByClassName("terminal-option")[i].outerHTML = `<span class="terminaled-option">${document.getElementsByClassName("terminal-option")[i].innerHTML}</span>`
+        }
+    }
+
+    function performInlineAction(action) { // INSOMNIATE
+        switch (action) {
+            case PHASE_ACTIVITY_OVER:
+                document.getElementById("card-zone").className = "inactive-card-zone"
+                document.getElementById("next-button").style.background = `${phases[detailedPhases[nthOfDetailedPhases].phase].color}`
+                document.getElementById("next-button").style.color = `#ffffff`
+                document.getElementById("next-button").style.cursor = `pointer`
+                generateEntries()
+                break
+            case SEEK_WOLVES: 
+                let otherWolves = []
+                for (let i = 0; i < playerCount; i++) {
+                    if (i != mePlayer - 1 && playerIsWolf[i]) {
+                        otherWolves.push(i)
+                    }
+                }
+                if (otherWolves.length > 0) {
+                    script[0] = {direct: true, line: `These other players are <span class="wolfteam">wolves</span>: ${otherWolves.map((i) => `<span class="player${i + 1}">${(playerNames[i].length == 0) ? "no-name nelly" : playerNames[i]}</span>`).join(", ")}. ${continueStr}`, expecting: null, action: null}
+                }
+                break
+            case SEEK_MASONS:
+                let otherMasons = []
+                for (let i = 0; i < playerCount; i++) {
+                    if (i != mePlayer - 1 && playerIsMason[i]) {
+                        otherMasons.push(i)
+                    }
+                }
+                if (otherMasons.length > 0) {
+                    script[0] = {direct: true, line: `These other players are masons: ${otherMasons.map((i) => `<span class="player${i + 1}">${(playerNames[i].length == 0) ? "no-name nelly" : playerNames[i]}</span>`).join(", ")}. ${continueStr}`, expecting: null, action: null}
+                }
+                break
+            case ROB_VIEW:
+                element = Array.from(Array.from($(".card-selection"))[robberLocation.owner].children)[robberLocation.childID]
+                flipCard({owner: robberLocation.owner, childID: robberLocation.childID, element: element, role: Number(element.getAttribute('data-roleid'))})
+                break
+            case VIEW_DOPPY:
+                element = Array.from(Array.from($(".card-selection"))[doppelgangerLocation.owner].children)[doppelgangerLocation.childID]
+                flipCard({owner: doppelgangerLocation.owner, childID: doppelgangerLocation.childID, element: element, role: Number(element.getAttribute('data-roleid'))})
+                break
+            case INSOMNIATE:
+                element = Array.from(Array.from($(".card-selection"))[insomniacLocation.owner].children)[insomniacLocation.childID]
+                flipCard({owner: insomniacLocation.owner, childID: insomniacLocation.childID, element: element, role: Number(element.getAttribute('data-roleid'))})
+                break
+            case UNREVEAL:
+                unflipCard(true, oldData)
+                break
+            case DOPPY_GIVE_ARTIFACT:
+            case GIVE_ARTIFACT:
+                let selectPlayers = Array.from(document.getElementsByClassName("select-player"))
+                for (let i = 0; i < selectPlayers.length; i++) {
+                    selectPlayers[i].style.display = "inline"
+                }
+                break
+            case VIEW_MY_ARTIFACT:
+                let myArtifact = document.getElementById("my-artifact")
+                hiddenArtifact = myArtifact.outerHTML
+                myArtifact.outerHTML = artifacts[Number(myArtifact.getAttribute("data-artifactid"))].element.outerHTML
+                document.getElementsByClassName("artifact-spot")[mePlayer - 1].children[0].id = "my-artifact"
+                break
+            case HIDE_MY_ARTIFACT:
+                document.getElementById("my-artifact").outerHTML = hiddenArtifact
+                break
+            case PROTECTED_AND_FAILED:
+                saveRecordAs(-1)
+                break
+            default:
+                break
+        }
+    }
+
+    let hiddenArtifact
+
+    function nextLine(skip=false) {
+        if (currentlyFlippedContainer != null && !unflipping) {
+            unflipCard()
+        }
+        let line = script.shift()
+        takingSelection = true
+        if (line.direct) {
+            if (skip) {
+                return false
+            }
+            if (typeof line.line == 'number') {
+                transmission(generateLine(line.line))
+            } else {
+                transmission(line.line)
+            }
+            expecting = line.expecting
+            action = line.action
+            performInlineAction(action)
+        } else {
+            //console.log(roleScripts[line.roleID].script)
+            if (line.roleID != doppelganger.ID || line.roleViewed == doppelganger.ID) {
+                script.unshift({direct: true, line: `You go to sleep as ${roles[line.roleID].name}. ${continueStr}`, expecting: null, action: null})
+                if (line.roleID == robber.ID && isShielded(robberLocation)) {
+                    script.unshift({direct: true, line: `You cannot perform the Robber action, as ${describeCard(robberLocation)} has been protected! ${continueStr}`, expecting: null, action: PROTECTED_AND_FAILED})
+                } else if (line.roleID == drunk.ID && isShielded(drunkLocation)) {
+                    script.unshift({direct: true, line: `You cannot perform the Drunk action, as ${describeCard(drunkLocation)} has been protected! ${continueStr}`, expecting: null, action: PROTECTED_AND_FAILED})
+                } else if (line.roleID == insomniac.ID && isShielded(insomniacLocation)) {
+                    script.unshift({direct: true, line: `You cannot perform the Insomniac action, as ${describeCard(insomniacLocation)} has been protected! ${continueStr}`, expecting: null, action: PROTECTED_AND_FAILED})
+                } else if (line.roleID == robber.ID && nUnshieldedOtherPlayerCards < 1) {
+                    script.unshift({direct: true, line: `You cannot perform the Robber action, as too many other players' cards have been protected! ${continueStr}`, expecting: null, action: PROTECTED_AND_FAILED})
+                } else if (line.roleID == troublemaker.ID && nUnshieldedOtherPlayerCards < 2) {
+                    script.unshift({direct: true, line: `You cannot perform the Troublemaker action, as too many other players' cards have been protected! ${continueStr}`, expecting: null, action: PROTECTED_AND_FAILED})
+                } else if (line.roleID == vi.ID && nUnshieldedOtherPlayerCards < 2) {
+                    script.unshift({direct: true, line: `You cannot perform the Village Idiot action, as too many other players' cards have been protected! ${continueStr}`, expecting: null, action: PROTECTED_AND_FAILED})
+                } else {
+                    for (let i = roleScripts[line.roleID].script.length - 1; i >= 0; i--) {
+                        script.unshift(roleScripts[line.roleID].script[i])
+                    }
+                }
+                script.unshift({direct: true, line: `You wake up as ${roles[line.roleID].name}. ${continueStr}`, expecting: null, action: null})
+            } else {
+                script.unshift({direct: true, line: `You go to sleep as Doppy-${roles[line.roleViewed].name}. ${continueStr}`, expecting: null, action: null})
+
+                if (line.roleViewed == robber.ID && isShielded(doppelgangerLocation)) {
+                    script.unshift({direct: true, line: `You cannot perform the Doppy-Robber action, as ${describeCard(doppelgangerLocation)} has been protected! ${continueStr}`, expecting: null, action: PROTECTED_AND_FAILED})
+                } else if (line.roleViewed == drunk.ID && isShielded(doppelgangerLocation)) {
+                    script.unshift({direct: true, line: `You cannot perform the Doppy-Drunk action, as ${describeCard(doppelgangerLocation)} has been protected! ${continueStr}`, expecting: null, action: PROTECTED_AND_FAILED})
+                } else if (line.roleViewed == insomniac.ID && isShielded(doppelgangerLocation)) {
+                    script.unshift({direct: true, line: `You cannot perform the Doppy-Insomniac action, as ${describeCard(doppelgangerLocation)} has been protected! ${continueStr}`, expecting: null, action: PROTECTED_AND_FAILED})
+                } else if (line.roleViewed == robber.ID && nUnshieldedOtherPlayerCards < 1) {
+                    script.unshift({direct: true, line: `You cannot perform the Robber action, as too many other players' cards have been protected! ${continueStr}`, expecting: null, action: PROTECTED_AND_FAILED})
+                } else if (line.roleViewed == troublemaker.ID && nUnshieldedOtherPlayerCards < 2) {
+                    script.unshift({direct: true, line: `You cannot perform the Troublemaker action, as too many other players' cards have been protected! ${continueStr}`, expecting: null, action: PROTECTED_AND_FAILED})
+                } else if (line.roleViewed == vi.ID && nUnshieldedOtherPlayerCards < 2) {
+                    script.unshift({direct: true, line: `You cannot perform the Village Idiot action, as too many other players' cards have been protected! ${continueStr}`, expecting: null, action: PROTECTED_AND_FAILED})
+                } else if (doppyDifferent[line.roleViewed]) {
+                    for (let i = doppyScripts[line.roleViewed].script.length - 1; i >= 0; i--) {
+                        script.unshift(doppyScripts[line.roleViewed].script[i])
+                    }
+                } else {
+                    for (let i = roleScripts[line.roleViewed].script.length - 1; i >= 0; i--) {
+                        script.unshift(roleScripts[line.roleViewed].script[i])
+                    }
+                }
+                script.unshift({direct: true, line: `You wake up as Doppy-${roles[line.roleViewed].name}. ${continueStr}`, expecting: null, action: null})
+            }
+            nextLine()
+        }
+    }
+
+    function generateEntries() {
+        if (detailedPhases[nthOfDetailedPhases].nActiveCards > 0) {
+            const myEntries = $("input[type=\"text\"]:read-only.entry")
+            let filledEntries = 0
+            for (; filledEntries < myRecordsThisPhase.length; filledEntries++) {
+                let key = Number(myEntries[filledEntries].getAttribute('data-entryid'))
+                myEntries[filledEntries].value = encodeN(myRecordsThisPhase[filledEntries] + 1, key)
+            }
+            let entryCeiling = entryCeil()
+            for (; filledEntries < myEntries.length; filledEntries++) {
+                let key = Number(myEntries[filledEntries].getAttribute('data-entryid'))
+                myEntries[filledEntries].value = encodeN(Math.floor(Math.random() * entryCeiling), key)
+            }
+        }
+        document.getElementById("next-button").setAttribute("onclick", "endPhase()")
+    }
+
+    function orDecline() {
+        return `(You may also <u class="terminal-option" onclick="saveRecordAs(-1); nextLine(true); transmission(\`You declined. \${continueStr}\`)">decline</u>.)`
+    }
+
+    function newEntryMax(n) {
+        maxEntryLength = Math.ceil(Math.log(2 * n + 2) / Math.log(nChars))
+    }
+
+    function entryCeil() {
+        return Math.floor(Math.pow(nChars, maxEntryLength) / 2)
+    }
+
+    function transmission(str) {
+        unmakeOptions()
+        document.getElementById("terminal").innerHTML += "<div class=\"transmission-container\"><p class=\"transmission\">" + str + "</p></div>"
+        document.getElementById("terminal-box").scrollTo(0, document.getElementById("terminal-box").scrollHeight)
+    }
+
+    function startPhase(delay = 0) {
+        if (detailedPhases.length == 0) {
+            endAll()
+            return
+        }
+        window.setTimeout(function(){
+            backupCardZone = document.getElementById("card-zone").innerHTML
+        },1000)
+        let entriesHTML = ""
+        let thisDetailedPhase = detailedPhases[nthOfDetailedPhases]
+        if (nthOfDetailedPhases > 0) {
+            document.getElementsByClassName("phase-arrow")[nthOfDetailedPhases - 1].innerHTML = ""
+            document.getElementsByClassName("phase-arrow")[nthOfDetailedPhases].innerHTML = "&gt;"
+        }
+        if (thisDetailedPhase.nActiveCards != 0) {
+            console.log(`Starting ${phases[thisDetailedPhase.phase].class}`)
+            newEntryMax(thisDetailedPhase.entryMax)
+            othersEntries = 0
+            for (let i = 0; i < playerCount; i++) {
+                entriesHTML += `<p class="entry-p player${i + 1}">${(i + 1 == mePlayer ? "&gt; " : "")}${(playerNames[i].length == 0) ? "no-name nelly" : playerNames[i]} `
+                let nEntries = Math.min(thisDetailedPhase.nActiveCards, playerCardCounts[i])
+                if (thisDetailedPhase.phase == doppyPhase.ID) {
+                    nEntries = 2
+                }
+                if (i == mePlayer - 1) {
+                    for (let i = 0; i < nEntries; i++) {
+                        entriesHTML += `<input type="text" class="entry" data-entryID="${entrySeed++}" readonly> `
+                    }
+                } else {
+                    for (let i = 0; i < nEntries; i++) {
+                        othersEntries++
+                        entriesHTML += `<input type="text" class="entry" ${caseInsensitive ? `oninput="this.value = this.value.toUpperCase(); ifFullGoTo(this, ${othersEntries})"` : `oninput="ifFullGoTo(this, ${othersEntries})"`}data-entryID="${entrySeed++}"> `
+                    }
+                }
+                entriesHTML += `</p>`
+            }
+        }
+        entriesHTML += `<p id="next-button" class="${phases[thisDetailedPhase.phase].class}">${(nthOfDetailedPhases < detailedPhases.length - 1) ? "NEXT PHASE" : "END NIGHT"}</p>`
+        entriesHTML += `<div id="post-button-grid">`
+        if (usingTimer) {
+            timerTime = timerM * Math.min(thisDetailedPhase.waitingN, maxPlayerCardCount + (nthOfDetailedPhases == 0 ? 1 : 0)) + timerB
+            timerColon = true
+            entriesHTML += `<div id="timer-container"><p id="timer">${toTimestamp(timerTime, true)}</p></div>`
+        }
+        if (thisDetailedPhase.nActiveCards != 0) {
+            entriesHTML += `<div style='grid-column: 2 / 3'><p class="entry-savetext"><input type="text" id="entry-savetext"></p>`
+            entriesHTML += `<p class="entry-buttons"><span onclick="entryTextGenerate()">Generate</span> <span onclick="entryTextCopy()">Copy</span> <span onclick="entryTextPaste()">Paste</span> <span onclick="entryTextLoad()">Load</span></p></div>`
+        }
+        entriesHTML += `</div>`
+        entriesBox.innerHTML = entriesHTML
+        window.setTimeout(function(){
+        transmission(`The ${phases[thisDetailedPhase.phase].name} phase begins... ${continueStr}`)
+        if (usingTimer) {
+            countdownInterval = window.setInterval(function(){
+                timerColon = !timerColon
+                if (timerColon) {
+                    timerTime--
+                }
+                document.getElementById("timer").innerHTML = toTimestamp(timerTime)
+            }, 600)
+        }
+        if (thisDetailedPhase.myRoles.length == 0) {
+            script.push({direct: true, line: `You have nothing to do this phase! ${continueStr}`, expecting: null, action: null})
+        } else {
+            for (let i = 0; i < thisDetailedPhase.myRoles.length; i++) {
+                if (thisDetailedPhase.myRoles[i].roleID == doppelganger.ID) {
+                    script.push({direct: false, roleID: thisDetailedPhase.myRoles[i].roleID, roleViewed: thisDetailedPhase.myRoles[i].roleViewed})
+                } else {
+                    script.push({direct: false, roleID: thisDetailedPhase.myRoles[i].roleID})
+                }
+            }
+        }
+        script.push({direct: true, line: `The ${phases[thisDetailedPhase.phase].name} phase ends... <span id="expecting-${phases[thisDetailedPhase.phase].name.toLowerCase()}-encodings"></span>`, expecting: null, action: PHASE_ACTIVITY_OVER})}, delay)
+    }
+
+    function toTimestamp(n, skip = false) {
+        let str = `${Math.floor(n / 60)}${timerColon ? ":" : " "}${n % 60 < 10 ? "0" : ""}${n % 60}`
+        if (skip || n == 0) {
+            window.clearInterval(countdownInterval)
+        }
+        if (n == 0) {
+            document.getElementById("timer").style.color = "rgb(239, 89, 89)"
+        }
+        return str
+    }
+
+    let countdownInterval = null, timerTime, timerColon = false
+
+    function ifFullGoTo(input, nextID) {
+        let othersEntries = Array.from($("input.entry:not(:read-only)"))
+        if (nextID < othersEntries.length && input.value.length >= maxEntryLength) {
+            othersEntries[nextID].focus()
+        }
+    }
+
+    function startDisplay() {
+        document.getElementById("terminal").innerHTML = ""
+        let centerZone = "<div class=\"player-row\"><div id=\"center-zone\" class=\"player-zone\"><p class=\"zone-name\">Center</p><p class=\"card-selection\">"
+        let totalCards = 0
+        for (let i = 0; i < pools[0].roles.length; i++) {
+            centerZone += unknownCard.outerHTML.replace("ismine?", 0).replace("roleID?", pools[0].roles[i].ID).replace("iscenter?", "1").replace("n?", i).replace("owner?", 0).replace("9", totalCards).replace("index?", totalCards++) + " "
+        }
+        if (curatorInPlay || sentinelInPlay) {
+            centerZone += "</p><p id=\"artifact-selection\">"
+            if (curatorInPlay) {
+                for (let i = 0; i < shuffledArtifacts.length; i++) {
+                    centerZone += unknownArtifact.outerHTML.replace("artifactid?", shuffledArtifacts[i].ID).replace("9", i).replace("index?", i) + " "
+                }
+                if (sentinelInPlay) {
+                    centerZone += "<span class=\"artifact-shield-separator\"> : </span> "
+                }
+            }
+            if (sentinelInPlay) {
+                centerZone += shield.element.outerHTML
+                if (doppyInPlay) {
+                    centerZone += " " + shield.element.outerHTML
+                }
+            }
+        }
+        centerZone += "</p></div></div>"
+        document.getElementById("card-zone").innerHTML += centerZone
+        let playerZones = "<div class=\"player-row\">", playerZone
+        let cardsSinceLastRow = 0, playersSinceLastRow = 0
+        for (let i = 1; i < pools.length; i++) {
+            playerZone = `<div class="player-zone player${i}"><p class=\"zone-name\"><u class="select-player" onclick="selectPlayer(${i})">SELECT<br></u>${(playerNames[i - 1].length == 0) ? "no-name nelly" : playerNames[i - 1]} (player ${i}) ${(i == mePlayer) ? "(you) " : ""}<span class="artifact-spot"></span></p><p class=\"card-selection\">`
+            for (let j = 0; j < pools[i].roles.length; j++) {
+                playerZone += unknownCard.outerHTML.replace("ismine?", (mePlayer == i ? 1 : 0)).replace("roleID?", pools[i].roles[j].ID).replace("iscenter?", "0").replace("n?", j).replace("owner?", i).replace("9", totalCards).replace("index?", totalCards++) + " "
+                cardsSinceLastRow++
+            }
+            playersSinceLastRow++
+            playerZone += "</p></div>"
+            playerZones += playerZone
+            if ((i < playerCount && (cardsSinceLastRow + playerCardCounts[i]) >= 8) || playersSinceLastRow >= 3) {
+                playerZones += "</div><div class=\"player-row\">"
+                cardsSinceLastRow = 0
+                playersSinceLastRow = 0
+            }
+        }
+        playerZones += "</div>"
+        document.getElementById("card-zone").innerHTML += playerZones
+        document.getElementById("card-zone").style.display = "block"
+        document.getElementById("configs").style.display = "none"
+        document.getElementById("before-start").style.display = "none"
+        document.getElementById("entries").style.display = "block"
+        document.getElementsByClassName("phase-arrow")[0].innerHTML = "&gt;"
+        transmission("Everyone goes to sleep!")
+        transmission("Your cards: " + pools[mePlayer].roles.map((x) => terminalClean(x.element.outerHTML)).join(" "))
+    }
+
+    function terminalClean(str) {
+        return str.replace(/selectCard\(.*?\)(; )?/g, "")
+    }
+
+    function start() {
+        mode = GAMEPLAY
+        if (caseInsensitive) {
+            chars = "27HXQJYZGVNU98RE46CBSTKPMFL1WA3I5D"
+            nChars = chars.length
+        } else {
+            chars = "MF5BVmExSpZ12uj3vy7DQTAU8zPidrnoHCqG49sbNwI6hlcJeLWKagXRYkft"
+            nChars = chars.length
+        }
+        rolesInPlay.sort((a,b) => a.ID - b.ID)
+        artifactsInPlay.sort((a,b) => a.ID - b.ID)
+        let shuffledRoles = shuffleHash(seed, rolesInPlay)
+        entrySeed = hash % 200
+        let center = {ID: 0, roles: []}
+        let lastSelectedRole = 0
+        while (lastSelectedRole < centerCardCount) {
+            center.roles.push(shuffledRoles[lastSelectedRole++])
+        }
+        pools.push(center)
+        playerIsWolf = new Array(playerCount).fill(false)
+        playerIsMason = new Array(playerCount).fill(false)
+        nUnshieldedOtherPlayerCards = nCards - centerCardCount - playerCardCounts[mePlayer - 1]
+        for (let i = 0; i < playerCount; i++) {
+            if (playerCardCounts[i] > maxPlayerCardCount) {
+                maxPlayerCardCount = playerCardCounts[i]
+            }
+            let thisPlayer = {ID: i + 1, roles: []}
+            for (let j = 0; j < playerCardCounts[i]; j++) {
+                let newRole = shuffledRoles[lastSelectedRole++]
+                thisPlayer.roles.push(newRole)
+
+                switch (newRole.ID) {
+                    case werewolf.ID:
+                        playerIsWolf[i] = true
+                        break
+                    case mason.ID:
+                        playerIsMason[i] = true
+                        break
+                    case robber.ID:
+                        robberLocation = {owner: i+1, childID: j}
+                        break
+                    case doppelganger.ID:
+                        doppelgangerLocation = {owner: i+1, childID: j}
+                        break
+                    case drunk.ID:
+                        drunkLocation = {owner: i+1, childID: j}
+                        break
+                    case insomniac.ID:
+                        insomniacLocation = {owner: i+1, childID: j}
+                        break
+                    default:
+                        break
+                }
+            }
+            pools.push(thisPlayer)
+        }
+        if (curatorInPlay) {
+            shuffledArtifacts = shuffleHash(seed, artifactsInPlay)
+        }
+        let entryMaces = [nCards, nCards * nCards, 3, nCards * nCards, playerCount * nArtifacts * nArtifacts, playerCount * nArtifacts * nArtifacts]
+        let roleIDsInPlay = rolesInPlay.map((x) => x.ID)
+        let poolIDs = pools.map((x) => x.roles.map((y) => y.ID))
+        for (let i = 0; i < phases.length - 1; i++) {
+            if (loadedPhases[i].length == 0) {
+                continue
+            }
+            detailedPhases.push({phase: i, entryMax: entryMaces[i], nActiveCards: 0, activeCards: [], myRoles: [], everyoneActive: [], waitingN: 0})
+            let n = detailedPhases.length - 1
+            if (n == 0) {
+                detailedPhases[n].waitingN++
+            }
+            let alreadyWolfed = false, alreadyMasoned = false, alreadyVillaged = false
+            for (let k = 0; k < roleIDsInPlay.length; k++) {
+                if (roleIDsInPlay[k] == doppelganger.ID && i == doppyPhase.ID) {
+                    detailedPhases[n].waitingN += 2
+                } else if (roleIDsInPlay[k] == doppelganger.ID && i == twoppyPhase.ID) {
+                    detailedPhases[n].waitingN++
+                } else if (roles[roleIDsInPlay[k]].phase == i) {
+                    if (roleIDsInPlay[k] == werewolf.ID) {
+                        if (alreadyWolfed) {
+                            continue
+                        } else {
+                            alreadyWolfed = true
+                        }
+                    } else if (roleIDsInPlay[k] == mason.ID) {
+                        if (alreadyMasoned) {
+                            continue
+                        } else {
+                            alreadyMasoned = true
+                        }
+                    } else if (roleIDsInPlay[k] == villager.ID) {
+                        if (alreadyVillaged) {
+                            continue
+                        } else {
+                            alreadyVillaged = true
+                        }
+                    }
+                    detailedPhases[n].waitingN++
+                }
+            }
+            for (let j = 0; j < phases[i].activeRoles.length; j++) {
+                if (roleIDsInPlay.includes(phases[i].activeRoles[j].roleID) && !(phases[i].activeRoles[j].roleID == doppelganger.ID && i == twoppyPhase.ID && !curatorInPlay && !revealerInPlay)) { // no twoppyin' around if somnyphase consists only of insomniac
+                    detailedPhases[n].nActiveCards++
+                    detailedPhases[n].activeCards.push(phases[i].activeRoles[j])
+                }
+            }
+            for (let j = 1; j < pools.length; j++) {
+                let theseActiveCards = []
+                for (let k = 0; k < detailedPhases[n].nActiveCards; k++) {
+                    if (poolIDs[j].includes(detailedPhases[n].activeCards[k].roleID)) {
+                        theseActiveCards.push(detailedPhases[n].activeCards[k])
+                    }
+                }
+                detailedPhases[n].everyoneActive.push({player: j, activeCards: theseActiveCards})
+            }
+            if (i == twoppyPhase.ID) {
+                if (poolIDs[mePlayer].includes(doppelganger.ID)) {
+                    detailedPhases[n].myRoles.push({roleID: doppelganger.ID, roleViewed: null})
+                }
+            } else {
+                for (let j = 0; j < pools[mePlayer].roles.length; j++) {
+                    if (pools[mePlayer].roles[j].phase == i) {
+                        if (i != doppyPhase.ID) {
+                            if (j > 0 && poolIDs[mePlayer].slice(0, j).includes(poolIDs[mePlayer][j])) {
+                                continue // only one of repeat roles, thx
+                            }
+                            detailedPhases[n].myRoles.push({roleID: pools[mePlayer].roles[j].ID})
+                        } else {
+                            detailedPhases[n].myRoles.push({roleID: doppelganger.ID, roleViewed: doppelganger.ID})
+                            detailedPhases[n].myRoles.push({roleID: doppelganger.ID, roleViewed: null})
+                        }
+                    }
+                }
+                detailedPhases[n].myRoles.sort((a, b) => a.roleID > b.roleID)
+            }
+        }
+        startDisplay()
+        startPhase()
+    }
+
+    function encodeN(n, key) {
+        entryCeiling = entryCeil()
+        if (n < 0)
+            return "ERROR"
+        if (n > entryCeiling)
+            console.log("Warning: Encoding " + n + " > current entry ceiling " + entryCeiling + ".")
+        offset = nthSeededRandomNumber(seed, key)
+        n += offset
+        //n = n % entryCeiling
+        string = ""
+        while (n > 0 || string.length < maxEntryLength) {
+            string += chars[n % nChars]
+            n = Math.floor(n / nChars)
+        }
+        if (string == "")
+            string = chars[0]
+        return string
+    }
+// 11111111111111111111;1111111;0;1;0;2;3;3;grim;trimble;1;hentian;15;spiff;1
+    function decodeN(string, key) {
+        if (string.length == 0) {
+            return "ERROR"
+        }
+        if (caseInsensitive) {
+            string = string.toUpperCase()
+        }
+        offset = nthSeededRandomNumber(seed, key)
+        n = 0
+        for (let i = string.length - 1; i >= 0; i--) {
+            n += chars.indexOf(string[i]) * Math.pow(nChars, i)
+        }
+        n -= offset
+        n = (n + entryCeil()) % entryCeil()
+        return n
+    }
+</script>
+</html>

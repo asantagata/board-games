@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>FLIP7</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css">
+    <link href="https://algames.neocities.org/favicon.ico" rel="shortcut icon" type="image/ico">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+</head>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@500');
+    @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@700');
+
+    * {
+        font-family: 'Inconsolata';
+        clear: both;
+        box-sizing: border-box;
+        color: white;
+        font-size: medium;
+        cursor: default;
+        user-select: none;
+    }
+
+    body,html {
+        background: #000;
+        font-size: 16px;
+        margin: 0px;
+        padding: 0px;
+        width: 100vw;
+    }
+
+    :root {
+        --bg: #bdb7a8;
+        --bgbonus: #FBC977;
+        --text0: #EE1F79;
+        --text1: #978b7a;
+        --text2: #66b32b;
+        --text3: #F14E61;
+        --text4: #45aba2;
+        --text5: #40BA43;
+        --text6: #B9529A;
+        --text7: #DB8478;
+        --text8: #72ad65;
+        --text9: #F99220;
+        --text10: #ED2027;
+        --text11: #78A8D7;
+        --text12: #6f665b;
+        --textunknown: #4b4742;
+        --bgunknown: #312e2a;
+        --textbonus: #E95E54;
+        --textaction: var(--bg);
+        --bgfreeze: var(--text4);
+        --bgsecondchance: var(--text0);
+        --bgflip3: var(--text5);
+        --textflip3: var(--text5);
+        --player1: rgb(227, 66, 74);
+        --player2: rgb(80, 177, 80);
+        --player3: rgb(57, 164, 215);
+        --player4: rgb(214, 84, 164);
+        --player5: rgb(244, 195, 58);
+        --player6: rgb(69, 209, 179);
+        --player7: rgb(255, 123, 85);
+        --player8: rgb(147, 130, 247);
+        --player9: rgb(255, 60, 0);
+        --player10: rgb(138, 169, 201);
+        --player0: var(--player10);
+        --player1-bg: rgb(26, 12, 12);
+        --player2-bg: rgb(11, 26, 11);
+        --player3-bg: rgb(10, 20, 25);
+        --player4-bg: rgb(19, 12, 19);
+        --player5-bg: rgb(21, 20, 12);
+        --player6-bg: rgb(10, 22, 20);
+        --player7-bg: rgb(25, 14, 11);
+        --player8-bg: rgb(11, 10, 20);
+        --player9-bg: rgb(28, 8, 0);
+        --player10-bg: rgb(15, 18, 22);
+        --player0-bg: var(--player10-bg);
+    }
+
+    .player-hand {
+        font-size: small;
+        min-height: 16ch;
+    }
+
+    .card {
+        display: inline-flex;
+        flex-direction:column;
+        width: 12ch;
+        height: 15ch;
+        text-align: center;
+        font-size: small;
+        overflow: hidden;
+        border-radius: 1ch;
+        padding: 1ch;
+        word-wrap: break-word;
+        vertical-align: middle;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.1s;
+    }
+
+    .card.minicard {
+        width: 8ch;
+        height: 10ch;
+        margin-bottom: 1ch;
+        margin-right: 1ch;
+    }
+
+    .card.expired {
+        filter: opacity(0.8) grayscale(0.5) brightness(0.7);
+    }
+
+    .card.antecard {
+        background: #0000;
+        cursor: default;
+    }
+    .card.antecard::before, .card.antecard::after {
+        content: none
+    }
+
+    .card0, .card1, .card2, .card3, .card4, .card5, .card6, .card7, .card8, .card9, .card10, .card11, .card12 {
+        background: var(--bg);
+    }
+
+    .cardunknown { background: var(--bgunknown) }
+
+    .card::after, .card::before {
+        text-shadow: 0px 1px 0px rgb(0 0 0 / 0.075), 0px 1px 1px rgb(0 0 0 / 0.075), 0px 2px 2px rgb(0 0 0 / 0.075);
+    }
+
+    .card:not(.cardsecondchance):not(.cardfreeze)::after {
+        font-size: xx-large;
+        font-weight: bold;
+        background: #fffa;
+        height: 2ch;
+        width: 2ch;
+        padding: 0.5ch;
+        border-radius: 50%;
+        white-space: nowrap;
+        display: inline-block;
+    }
+
+    .minicard::after {
+        font-size: x-large !important;
+    }
+
+    .minicard::before {
+        font-size: small !important;
+    }
+
+    .cardplus10::after {
+        text-indent: -0.5ch;
+    }
+
+    .cardplus2, .cardplus4, .cardplus6, .cardplus8, .cardplus10, .cardtimes2 {
+        background: var(--bgbonus);
+        color: var(--textbonus);
+    }
+
+    .cardunknown { color: var(--textunknown) }
+    .card0 { color: var(--text0) }
+    .card1 { color: var(--text1) }
+    .card2 { color: var(--text2) }
+    .card3 { color: var(--text3) }
+    .card4 { color: var(--text4) }
+    .card5 { color: var(--text5) }
+    .card6 { color: var(--text6) }
+    .card7 { color: var(--text7) }
+    .card8 { color: var(--text8) }
+    .card9 { color: var(--text9) }
+    .card10 { color: var(--text10) }
+    .card11 { color: var(--text11) }
+    .card12 { color: var(--text12) }
+
+    .cardunknown::after { content: '?' }
+    .card0::after { content: '0' }
+    .card1::after { content: '1' }
+    .card2::after { content: '2' }
+    .card3::after { content: '3' }
+    .card4::after { content: '4' }
+    .card5::after { content: '5' }
+    .card6::after { content: '6' }
+    .card7::after { content: '7' }
+    .card8::after { content: '8' }
+    .card9::after { content: '9' }
+    .card10::after { content: '10' }
+    .card11::after { content: '11' }
+    .card12::after { content: '12' }
+    .cardplus2::after { content: '+2' }
+    .cardplus4::after { content: '+4' }
+    .cardplus6::after { content: '+6' }
+    .cardplus8::after { content: '+8' }
+    .cardplus10::after { content: '+10' }
+    .cardtimes2::after { content: '×2' }
+    
+    .cardsecondchance { background: var(--bgsecondchance) }
+    .cardflip3 { background: var(--bgflip3) }
+    .cardfreeze { background: var(--bgfreeze) }
+    .cardsecondchance::before { content: 'SECOND CHANCE' }
+    .cardflip3::before { content: 'FLIP' }
+    .cardfreeze::before { content: 'FREEZE' }
+    .cardsecondchance::after { content: '♡' }
+    .cardflip3::after { content: '3'; color: var(--textflip3) }
+    .cardfreeze::after { content: '❆' }
+    .cardsecondchance::before, .cardflip3::before, .cardfreeze::before {
+        font-size: medium;
+    }
+    .cardfreeze::after, .cardsecondchance::after {
+        font-size: xx-large;
+    }
+
+    .card:not(#drawpile, #discard, #discard *, .inactive .card):hover {
+        animation: cardtilt 0.3s ease-in-out;
+    }
+
+    @keyframes cardtilt {
+        0% {transform: rotate(0deg);}
+        20% {transform: rotate(-10deg);}
+        55% {transform: rotate(7deg);}
+        80% {transform: rotate(-3deg);}
+        95% {transform: rotate(1deg);}
+    }
+
+    input[type=number], input[type=text]{
+        background: #2a2a2c;
+        outline: none;
+        margin: 0px;
+        border: 0px;
+        padding: 0.5ch;
+        cursor: text;
+    }
+
+    input[type=number] {
+        width: min(10ch, 90%);
+    }
+
+    #config {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1ch;
+    }
+
+    #player-configs {
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+
+    #player-list {
+        margin: 0;
+    }
+
+    #player-list>li, #player-list>li>input { color: var(--player1) }
+    #player-list>li:nth-child(10n+2), #player-list>li:nth-child(10n+2)>input { color: var(--player2) }
+    #player-list>li:nth-child(10n+3), #player-list>li:nth-child(10n+3)>input { color: var(--player3) }
+    #player-list>li:nth-child(10n+4), #player-list>li:nth-child(10n+4)>input { color: var(--player4) }
+    #player-list>li:nth-child(10n+5), #player-list>li:nth-child(10n+5)>input { color: var(--player5) }
+    #player-list>li:nth-child(10n+6), #player-list>li:nth-child(10n+6)>input { color: var(--player6) }
+    #player-list>li:nth-child(10n+7), #player-list>li:nth-child(10n+7)>input { color: var(--player7) }
+    #player-list>li:nth-child(10n+8), #player-list>li:nth-child(10n+8)>input { color: var(--player8) }
+    #player-list>li:nth-child(10n+9), #player-list>li:nth-child(10n+9)>input { color: var(--player9) }
+    #player-list>li:nth-child(10n), #player-list>li:nth-child(10n)>input { color: var(--player10) }
+    #player-list>li {
+        margin-bottom: 1ch;
+    }
+
+    #add-player, #finish-configs {
+        background: var(--player3);
+        cursor: pointer;
+        width: 100%;
+        display: inline-block;
+        padding: 0.5ch;
+        text-align: center;
+        transition: background 0.3s ease-in-out;
+    }
+
+    #finish-configs {
+        margin-top: 1ch;
+        width: calc(15ch + min(10ch, 90%))
+    }
+
+    .player-row {
+        width: calc(100% - 4ch);
+        display: flex;
+        gap: 2ch;
+        margin: 2ch;
+    }
+
+    .player-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .player-item {
+        flex: 1 1 0px;
+        padding: 1ch;
+        border-radius: 1ch;
+        transition: filter 0.3s ease-in-out;
+    }
+
+    #game {
+        display: none;
+    }
+
+    .player-name {
+        font-size: large;
+        color: inherit;
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    p {
+        margin: 0;
+    }
+
+    #terminal-container {
+        width: 100%;
+        height: 35vh;
+        bottom: 0;
+        left: 0;
+        position: fixed;
+        background: #1f1d1b;
+        display: grid;
+        align-items: center;
+        grid-template-columns: calc(12ch * 2 + 1ch) auto;
+    }
+
+    #terminal-container, #terminal {
+        padding: 1ch;
+    }
+
+    #terminal {
+        width: 100%;
+        min-height: 100%;
+        padding-bottom: 2ch;
+        display: flex;
+        flex-direction: column;
+        justify-content: end;
+    }
+
+    #terminal-box {
+        width: 100%;
+        height: 100%;
+        background: #0C0C0B;
+        overflow-y: auto;
+    }
+
+    #player-area-container {
+        width: 100%;
+        height: 65vh;
+        overflow: auto;
+    }
+
+    .transmission-container {
+        display: grid;
+        grid-template-columns: 2ch calc(100% - 2ch);
+        align-items: center;
+    }
+
+    .transmission-container:not(:last-child) {
+        padding-bottom: 1ch;
+        border-bottom: 1px solid #fff4;
+    }
+
+    .transmission-container:not(:first-child) {
+        padding-top: 1ch;
+    }
+
+    .transmission-container::before {
+        content: ">";
+        grid-column: 1 / 2;
+        color: #fffc;
+    }
+
+    .transmission {
+        margin: 0;
+        grid-column: 2 / 3;
+    }
+
+    .continue-str {
+        display: inline-block;
+        text-align: right;
+        grid-column: 1 / 3;
+        transform-origin: calc(100% - 2ch - (13ch / 2)) center;
+        padding-right: 2ch;
+        margin-top: 1ch;
+    }
+
+    .continue-str.replaystr {
+        transform-origin: calc(100% - 2ch - (30ch / 2)) center;
+    }
+
+    .continue-str, .continue-str * {
+        font-size: large;
+    }
+
+    .continue-str, .continue-link {
+        color: #ddd;
+    }
+
+    #hit-link {
+        color: #0ce522;
+    }
+
+    #stay-link {
+        color: #ccc;
+    }
+
+    .continue-link {
+        cursor: pointer;
+    }
+
+    .player-item.inactive {
+        filter: opacity(0.8) grayscale(0.5);
+        cursor: default;
+        animation: cardtilt 0.3s ease-in-out;
+    }
+
+    .player-item.inactive::after {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%) rotate(15deg);
+        font-size: xx-large;
+        text-shadow: 0px 1px 1px rgb(0 0 0 / 0.5), 0px 1px 2px rgb(0 0 0 / 0.5), 0px 2px 4px rgb(0 0 0 / 0.5);
+        font-weight: bold;
+    }
+
+    .player-item.inactive.frozen::after { content: 'FROZEN'; color: var(--bgfreeze) }
+    .player-item.inactive.staying::after { content: 'OUT'; color: #ccc }
+    .player-item.inactive.busted::after { content: 'BUSTED' }
+
+    .scorecard {
+        display: flex;
+        align-items: center;
+        gap: 1ch;
+    }
+
+    .pair {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pair > span:first-child, .pair > span:first-child * {
+        text-align: center;
+        font-size: x-large;
+    }
+
+    .scorecard .winningscore {
+        color: var(--bgbonus);
+        text-shadow: 0px 1px 0px rgb(255 255 255 / 0.075), 0px 1px 1px rgb(255 255 255 / 0.075), 0px 2px 2px rgb(255 255 255 / 0.075);
+    }
+
+    .pair > span:last-child {
+        text-align: center;
+        font-size: xx-small;
+    }
+
+    .scorecard, .scorecard * {
+        color: inherit;
+    }
+
+    .player-hand > .card {
+        margin-right: 1ch;
+        margin-top: 1ch;
+    }
+
+    #drawpile {
+        transition: opacity 0.1s ease-in-out;
+    }
+
+    .round-stats, .round-stats *:not(#goingplayer > span) {
+        color: #BAB9B8;
+    }
+
+    .round-stats {
+        text-align: center;
+        margin-top: 1ch;
+    }
+
+    #piles-box {
+        display: flex;
+        padding-right: 1ch;
+        justify-content: center;
+        gap: 1ch;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 4ch;
+        height: 1em;
+    }
+
+    .slider::before {
+        position: absolute;
+        content: "";
+        height: 2ch;
+        width: 2ch;
+        left: 0;
+        background-color: #ccc;
+        transition: .3s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider::before {
+        background-color: #ccc;
+    }
+
+    input:checked + .slider {
+        background-color: var(--text3);
+    }
+
+    input:checked + .slider::before {
+        transform: translateX(2ch);
+    }
+
+    #auto {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--text1);
+        transition: .3s;
+        border-radius: 0.5em;
+    }
+
+    .round-stats u#decklink {
+        color: #D7D4CB;
+        cursor: pointer;
+    }
+
+    #popup-bg, #clarity-bg {
+        z-index: 50;
+        background: #0008;
+        position: fixed;
+        width: 100vw;
+        height: 100vh;
+        top: 0;
+        display: none;
+        left: 0;
+    }
+
+    #popup, #clarity {
+        z-index: 51;
+        position: fixed;
+        width: calc(100vw - 20vh);
+        height: 80vh;
+        left: 10vh;
+        display: none;
+        border-radius: 4ch;
+        top: 10vh;
+        background: #1f1d1b;
+        padding: 4ch;
+    }
+
+    #clarity {
+        overflow: auto;
+    }
+
+    #popup-heading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1ch;
+    }
+
+    .h, #popup-heading {
+        font-size: x-large;
+        text-align: center;
+    }
+
+    .deck-mode {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;        
+        background: #fff1;
+        border-radius: 50%;
+        width: 4ch;
+        height: 4ch;
+        transition: background-color 0.3s ease-in-out;
+        text-align: center;
+    }
+
+    .icon {
+        display: inline-block;
+        background: #fffa;
+        border-radius: 10%;
+        width: 50%;
+        cursor: inherit;
+        height: 50%;
+    }
+
+    .icon.hamburger {
+        clip-path: polygon(0 0, 100% 0, 100% 20%, 0 20%, 0 40%, 100% 40%, 100% 60%, 0 60%, 0 80%, 100% 80%, 100% 100%, 0 100%)
+    }
+
+    .icon.twobox {
+        clip-path: polygon(0 0, 40% 0, 40% 100%, 0 100%, 0 0, 60% 0, 100% 0, 100% 100%, 60% 100%, 60% 0)
+    }
+
+    .deck-mode.selected {
+        background: #fff4;
+    }
+
+    .deck-mode:not(.selected) {
+        cursor: pointer;
+    }
+
+    #deck-area, #number-set, #bonus-set, #action-set {
+        background: #0008;
+        border-radius: 2ch;
+        overflow: auto;
+        width: 100%;
+    }
+
+    #number-set, #bonus-set, #action-set {
+        padding: 1ch;
+        margin-top: 1ch;
+        margin-bottom: 1ch;
+        padding-bottom: 0;
+    }
+
+    #deck-area {
+        height: calc(100% - 6ch);
+        margin-top: 2ch;
+        margin-bottom: 4ch;
+        padding: 2ch;
+    }
+
+    #deck-area.twobox {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2ch;
+    }
+
+    #what {
+        margin-top: 1ch;
+    }
+
+    #what span {
+        text-decoration: underline dotted;
+        cursor: pointer;
+    }
+
+    #clarity p:not(.header, .do-not-indent p) {
+        padding-left: 2ch;
+    }
+
+    #clarity p:not(.header) {
+        margin-bottom: 2ch;
+    }
+
+    #clarity .header, #clarity .header * {
+        font-size: large;
+        font-weight: bold;
+    }
+
+    .set-item {
+        white-space: nowrap;
+        background: #1f1d1b;
+        margin-right: 1ch;
+        margin-bottom: 1ch;
+        display: inline-block;
+        padding: 1ch;
+        border-radius: 1ch;
+    }
+
+    #clarity .minicard {
+        margin: 0 !important;
+    }
+
+    #clarity section {
+        margin-left: 2ch;
+    }
+
+    .action-name {
+        animation: actionname 3s linear infinite;
+    }
+
+    #player-area {
+        margin-bottom: 2ch;
+    }
+
+    .keybind {
+        display: inline-block;
+        padding-left: 0.5ch;
+        padding-right: 0.5ch;
+        height: 2ch;
+        text-align: center;
+        color: var(--bg) !important;
+        background: var(--bgunknown);
+        border-radius: 0.5ch;
+        font-size: medium;
+    }
+
+    @keyframes actionname {
+        0% { color: var(--bgsecondchance) }
+        22% { color: var(--bgsecondchance) }
+        23% { color: #c43bcc }
+        28% { color: #3568ba }
+        33% { color: var(--bgfreeze) }
+        57% { color: var(--bgfreeze) }
+        67% { color: var(--bgflip3) }
+        89% { color: var(--bgflip3) }
+        90% { color: #b2b248 }
+        95% { color: #d46239 }
+        100% { color: var(--bgsecondchance) }
+    }
+
+</style>
+<body>
+    <section id="config">
+        <div id="player-configs">
+            <ol id="player-list">
+                <li><input type="text" /></li>
+                <li><input type="text" /></li>
+            </ol>
+            <div id="add-player" onclick="addPlayer()">+ add player</div>
+        </div>
+        <div id="other-configs">
+            <div>
+                <label for="threshold">win threshold:</label>
+                <input type="number" id="threshold" min="0" step="1" value="200" placeholder="200" />
+            </div>
+            <div id="finish-configs" onclick="finishConfigs()">finish</div>
+            <p id="what"><span onclick="clarity()">What is this?</span></p>
+        </div>
+        <div id="clarity-bg" onclick="clarity()"></div>
+        <div id="clarity">
+
+            <p class="header">What is <i>Flip 7</i>?</p>
+            <p><i>Flip 7</i> (<a style="cursor: pointer" href="https://theop.games/products/flip-7">buy it?</a>) is a Blackjack-like card game. The deck consists of one 0, one 1, two 2's, three 3's and so on up to twelve 12's, and also some other kinds of cards I'll mention later. A player's score is (in most cases) the sum of the cards in their hand, but if they draw a pair (the same number card twice), then they've "busted" and their score for the round is 0. So it's a luck-based/risk-management/card-counting game about knowing when to stop. Like Blackjack.</p>
+            
+            <p class="header">How to play <i>Flip 7</i></p>
+            <p>A dealer (who is also in play) shuffles the deck and all players take turns clockwise. On a player's turn, they may choose to <span style="color: #0ce522">hit</span> (take a card) or <span style="color: #ccc">stay</span> (take no card and be out<sup>*</sup> for the round). All dealing is public. If somebody winds up with two of the same number card, they bust, so they're out<sup>*</sup> for the round and their score for the round is 0.</p>
+            <p><sup>*</sup> A player who is "out" cannot take cards for the duration of a round. Note however that being "out" is not necessarily "busting," the difference being that only busting sets one's score for the round to 0.</p>
+            <p>This continues until either everyone is out or someone accumulates 7 number cards, a feat for which they earn 15 bonus points automatically. If either event happens, the round ends, everyone discards their hand, and the whole thing happens from the beginning. Rounds proceed until someone's cumulative score has broken some winning threshold, traditionally 200 (but mutable for shorter/longer games.)</p>
+
+            <p class="header">The deck</p>
+            <p>The deck consists of 94 cards: 79 number cards, 6 bonus cards, and 9 action cards.</p>
+            <section class="do-not-indent">
+                <b class="headlet"><span style="color: var(--bg)">Number</span> cards</b>
+                <section>
+                    <div id="number-set">
+                        <div class="set-item">1 × <div class="card card0 minicard"></div></div>
+                        <div class="set-item">1 × <div class="card card1 minicard"></div></div>
+                        <div class="set-item">2 × <div class="card card2 minicard"></div></div>
+                        <div class="set-item">3 × <div class="card card3 minicard"></div></div>
+                        <div class="set-item">4 × <div class="card card4 minicard"></div></div>
+                        <div class="set-item">5 × <div class="card card5 minicard"></div></div>
+                        <div class="set-item">6 × <div class="card card6 minicard"></div></div>
+                        <div class="set-item">7 × <div class="card card7 minicard"></div></div>
+                        <div class="set-item">8 × <div class="card card8 minicard"></div></div>
+                        <div class="set-item">9 × <div class="card card9 minicard"></div></div>
+                        <div class="set-item">10 × <div class="card card10 minicard"></div></div>
+                        <div class="set-item">11 × <div class="card card11 minicard"></div></div>
+                        <div class="set-item">12 × <div class="card card12 minicard"></div></div>         
+                    </div>
+                    <p>Number cards constitute the majority of the deck. If a player draws two of the same number card, they bust. If a player accumulates 7 number cards, they earn 15 points and the round ends. Each number card contributes its number to a player's score, e.g. <span style="color: var(--text4)">4</span> is worth 4 points.</p>
+                </section>
+                <b class="headlet"><span style="color: var(--bgbonus)">Bonus</span> cards</b>
+                <section>
+                    <div id="bonus-set">
+                        <div class="set-item">1 × <div class="card cardplus2 minicard"></div></div>
+                        <div class="set-item">1 × <div class="card cardplus4 minicard"></div></div>
+                        <div class="set-item">1 × <div class="card cardplus6 minicard"></div></div>
+                        <div class="set-item">1 × <div class="card cardplus8 minicard"></div></div>
+                        <div class="set-item">1 × <div class="card cardplus10 minicard"></div></div>
+                        <div class="set-item">1 × <div class="card cardtimes2 minicard"></div></div>
+                    </div>
+                    <p>Bonus cards contribute to a score but do not conflict with other cards. If a player has a <span style="color: var(--text4)">4</span> card and draws a <span style="color: var(--bgbonus)">+4</span> card, they do not bust, and they have <span style="color: var(--text4)">4</span> <span style="color: var(--bgbonus)">+ 4</span> = 8 points total.</p>
+                    <p>The total formula for scoring is <span style="color: var(--bg)">n</span> × <span style="color: var(--bgbonus)">m</span> + <span style="color: var(--bgbonus)">b</span>, where <span style="color: var(--bg)">n</span> is the sum of all number cards, <span style="color: var(--bgbonus)">m</span> is 2 if the <span style="color: var(--bgbonus)">×2</span> card is held and 1 otherwise, and <span style="color: var(--bgbonus)">b</span> is the sum of all bonus cards (except <span style="color: var(--bgbonus)">×2</span>). That is all to say that for bonus cards, multiplication takes place <i>before</i> addition.</p>
+                </section>
+                <b class="headlet"><span class="action-name">Action</span> cards</b>
+                <section>
+                    <div id="action-set">
+                        <div class="set-item">3 × <div class="card cardsecondchance minicard" style="white-space: normal"></div></div>
+                        <div class="set-item">3 × <div class="card cardfreeze minicard"></div></div>
+                        <div class="set-item">3 × <div class="card cardflip3 minicard"></div></div>
+                    </div>
+                    <p>Action cards do not directly modify a player's score but instead cause some action to take place.</p>
+                    <p>A <span style="color: var(--bgsecondchance)">second chance</span> card, when dealt, is kept in a player's hand. Whenever that player is dealt a pair and would normally be forced to bust, they instead discard the offending card and the <span style="color: var(--bgsecondchance)">second chance</span> card but remain in the game. A player can only ever have one <span style="color: var(--bgsecondchance)">second chance</span> card; if they receive more than one, they must give it to another player who is in and does not have one. If there are no such players, the surplus <span style="color: var(--bgsecondchance)">second chance</span> card is discarded.</p>
+                    <p>When a player is dealt a <span style="color: var(--bgfreeze)">freeze</span> card, they immediately choose any player who is in, including themself. The chosen player is forced to <span style="color: #ccc">stay</span> immediately. The <span style="color: var(--bgfreeze)">freeze</span> card is discarded.</p>
+                    <p>When a player is dealt a <span style="color: var(--bgflip3)">flip 3</span> card, they immediately choose any player who is in, including themself. The chosen player is forced to draw 3 cards immediately (or fewer if the chosen player busts or accumulates 7 number cards, in which case the round ends.) The <span style="color: var(--bgflip3)">flip 3</span> card is discarded.</p>
+                    <p>If the player targeted by a <span style="color: var(--bgflip3)">flip 3</span> card is dealt any action cards, these are only to be resolved <i>after</i> all 3 cards are dealt or the player busts. (If the player busts, they may still use <span style="color: var(--bgfreeze)">freeze</span> or <span style="color: var(--bgflip3)">flip 3</span> cards.)</p>
+                </section>
+            </section>
+
+            <p class="header">End of game</p>
+            <p>When a round ends, if any player's score is higher than the winning threshold, the game is over. The winner is the player with the highest score (not necessarily the first or only player to break the winning threshold.) If multiple players are tied for the highest score, all of them have won. 🌼</p>
+
+            <p class="header">How do I use this site?</p>
+            <ul style="padding-left: 4ch">
+                <li>Explain this game to your friends</li>
+                <li>Livestream your screen to your friends</li>
+                <li>Enter you and your friends' names on the left</li>
+                <li>Click "finish"</li>
+            </ul>
+            <p style="padding-bottom: 0">A terminal in the game will instruct the rest. Your friends do not need to be on the site to play; just have them tune in and routinely ask them if they want to <span style="color: #0ce522">hit</span> or <span style="color: #ccc">stay</span>. Enjoy!</p>
+        </div>
+    </section>
+    <section id="game">
+        <section id="player-area-container">
+            <section id="player-area">
+
+            </section>
+        </section>
+        <div id="terminal-container">
+            <div id="piles">
+                <div class="round-stats">
+                    <p style="margin-bottom: 1ch">Playing to <span id="goal" style="color: var(--bgbonus)">200</span></p>
+                </div>
+                <div id="piles-box">
+                    <div id="drawpile" class="card cardunknown"></div>
+                    <div id="discard">
+                        <div class="card antecard" style="background: var(--bgunknown)"></div>
+                    </div>
+                </div>
+                <div class="round-stats">
+                    <p>Round <span id="round-n">1</span> ⋅ Cycle <span id="cycle-n">1</span></p>
+                    <p><span id="goingplayer"></span>'s turn</p>
+                    <p><span id='cards-n'>94</span> cards in <u id="decklink" onclick="toggleDeck()">deck</u> <span class='keybind'>D</span></p>
+                    <p><label class="switch">
+                        <input type="checkbox" id="auto" onchange="toggleAuto(this)">
+                        <span class="slider"></span>
+                    </label>
+                    <label for="auto">auto-enter <span class='keybind'>A</span></label></p>
+                </div>
+            </div>
+            <div id="terminal-box">
+                <div id="terminal">
+
+                </div>
+            </div>
+        </div>
+        <div id="popup-bg" onclick="toggleDeck()"></div>
+        <div id="popup">
+            <p id="popup-heading">Deck ⋅ 
+                <span class="deck-mode selected" id="hamburger-mode" onclick="deckMode(true)">
+                    <span class="icon hamburger"></span>
+                </span>
+                <span class="deck-mode" id="twobox-mode" onclick="deckMode(false)">
+                    <span class="icon twobox"></span>
+                </span> ⋅ <span style="font-size: medium"><span class="keybind">D</span>/<span class="keybind">Esc</span></span>
+            </p>
+            <div id="deck-area"></div>
+        </div>
+    </section>
+</body>
+<script>
+    const initCards = ['0', '1', '2', '2', '3', '3', '3', '4', '4', '4', '4', '5', '5', '5', '5', '5', '6', '6', '6', '6', '6', '6', '7', '7', '7', '7', '7', '7', '7', '8', '8', '8', '8', '8', '8', '8', '8', '9', '9', '9', '9', '9', '9', '9', '9', '9', '10', '10', '10', '10', '10', '10', '10', '10', '10', '10', '11', '11', '11', '11', '11', '11', '11', '11', '11', '11', '11', '12', '12', '12', '12', '12', '12', '12', '12', '12', '12', '12', '12', 'secondchance', 'secondchance', 'secondchance', 'freeze', 'freeze', 'freeze', 'flip3', 'flip3', 'flip3', 'plus2', 'plus4', 'plus6', 'plus8', 'plus10', 'times2']
+    // const initCards = ['flip3', 'flip3', 'flip3', 'flip3', 'flip3', 'flip3', 'flip3', 'secondchance', 'secondchance', 'secondchance', 'freeze', 'freeze', 'freeze']
+    const cardTypesInOrder = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', 'secondchance', 'freeze', 'flip3', 'plus2', 'plus4', 'plus6', 'plus8', 'plus10', 'times2']
+    const descriptors = new Map([
+        ['0', "<span style='color: var(--text0)'>0</span>"],
+        ['1', "<span style='color: var(--text1)'>1</span>"],
+        ['2', "<span style='color: var(--text2)'>2</span>"],
+        ['3', "<span style='color: var(--text3)'>3</span>"],
+        ['4', "<span style='color: var(--text4)'>4</span>"],
+        ['5', "<span style='color: var(--text5)'>5</span>"],
+        ['6', "<span style='color: var(--text6)'>6</span>"],
+        ['7', "<span style='color: var(--text7)'>7</span>"],
+        ['8', "<span style='color: var(--text8)'>8</span>"],
+        ['9', "<span style='color: var(--text9)'>9</span>"],
+        ['10', "<span style='color: var(--text10)'>10</span>"],
+        ['11', "<span style='color: var(--text11)'>11</span>"],
+        ['12', "<span style='color: var(--text12)'>12</span>"],
+        ['secondchance', "<span style='color: var(--bgsecondchance)'>SECOND CHANCE</span>"],
+        ['freeze', "<span style='color: var(--bgfreeze)'>FREEZE</span>"],
+        ['flip3', "<span style='color: var(--bgflip3)'>FLIP 3</span>"],
+        ['plus2', "<span style='color: var(--bgbonus)'>+2</span>"],
+        ['plus4', "<span style='color: var(--bgbonus)'>+4</span>"],
+        ['plus6', "<span style='color: var(--bgbonus)'>+6</span>"],
+        ['plus8', "<span style='color: var(--bgbonus)'>+8</span>"],
+        ['plus10', "<span style='color: var(--bgbonus)'>+10</span>"],
+        ['times2', "<span style='color: var(--bgbonus)'>×2</span>"],
+    ])
+    let nPlayers = 2
+    let players = []
+    let queue = []
+    let script = []
+    let currentDeck = []
+    let fullDeck = []
+    let threshold = 200
+    const continueStr = `</p><p class="continue-str">(<u class="continue-link" id="continue-link" onclick="readNextLine(); document.getElementById('continue-link').parentElement.remove()">continue</u> <span class='keybind'>Enter</span>)`
+    const continueStrOnce = continueStr.replace('readNextLine()', 'readNextLine(true)')
+    let forcingNonOnce = false // true if got 7 during flip3
+    const replayStr = continueStr.replace('>continue<', '>play again (same players)<').replace('class="continue-str"', 'class="continue-str replaystr"')
+    let cycleN = 1
+    let roundN = 1
+    let auto = false
+    const autodelay = 100
+    window.onload = () => {
+        document.getElementById('auto').checked = false
+    }
+    let newestContinueTimeoutID = -1
+    let showingDeck = false
+    let deckTimeouts = []
+    const charTypes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '-', '=', '[', ']', '\\', ';', '\'', ',', '.', '/', '`']
+    let selectingPlayer = false
+
+    window.onkeydown = (e) => {
+        if (players.length == 0) {
+            return
+        }
+
+        if (selectingPlayer) {
+            const idx = charTypes.indexOf(e.key)
+            if (idx >= 0) {
+                const somebodykey = Array.from(document.getElementsByClassName('somebody-link'))[idx]
+                if (somebodykey) {
+                    somebodykey.click()
+                }
+            }
+            return
+        }
+
+        switch (e.key) {
+            case 'Escape':
+                if (showingDeck) {
+                    toggleDeck()
+                }
+                if (showingClarity) {
+                    clarity()
+                }
+                break
+            case 'h':
+                const hitkey = document.getElementById('hit-link')
+                if (hitkey && !showingDeck) {
+                    hitkey.click()
+                }
+                break
+            case 's':
+                const staykey = document.getElementById('stay-link')
+                if (staykey && !showingDeck) {
+                    staykey.click()
+                }
+                break
+            case 'a':
+                document.getElementById('auto').click()
+                break
+            case 'd':
+                if (showingDeck && document.getElementById('hamburger-mode').classList.contains('selected')) {
+                    deckMode(false)
+                } else {
+                    toggleDeck()                    
+                }
+                break
+            case 'Enter':
+                const continuekey = document.getElementById('continue-link')
+                if (continuekey && !showingDeck) {
+                    forceNext()
+                }
+                break
+            default:
+                break
+        }
+    }
+
+    function loadDeck(isHamburger) {
+        deckTimeouts.forEach((x) => {
+            window.clearTimeout(x)
+        })
+        deckTimeouts = []
+
+        function sortFn(a,b) {
+            const aIndex = cardTypesInOrder.indexOf(a.type)
+            const bIndex = cardTypesInOrder.indexOf(b.type)
+            if (aIndex != bIndex) {
+                return aIndex - bIndex
+            }
+            if (!a.in && b.in) { return 1 }
+            return 0
+        }
+
+        document.getElementById('deck-area').innerHTML = ''
+        let sortedFullDeck = [...fullDeck]
+        sortedFullDeck.sort(sortFn)
+
+        if (isHamburger) {
+            document.getElementById('deck-area').classList.remove('twobox')
+        } else {
+            document.getElementById('deck-area').classList.add('twobox')
+            document.getElementById('deck-area').innerHTML = `<div></div><div></div>`
+        }
+
+        const length = 94
+        const totalTime = 750
+        let nDisplayed = 0
+        if (isHamburger) {
+            for (entry of sortedFullDeck) {
+                const newCard = document.createElement('div')
+                newCard.className = `card card${entry.type} minicard ${!entry.in ? 'expired' : ''}`
+                deckTimeouts.push(window.setTimeout(() => {
+                    forceJiggle(newCard)
+                    deckTimeouts.shift()
+                    document.getElementById('deck-area').appendChild(newCard)
+                }, nDisplayed++ * (totalTime / length)))
+            }
+        } else {
+            for (entry of sortedFullDeck) {
+                const newCard = document.createElement('div')
+                const isin = entry.in
+                newCard.className = `card card${entry.type} minicard ${!entry.in ? 'expired' : ''}`
+                deckTimeouts.push(window.setTimeout(() => {
+                    forceJiggle(newCard)
+                    deckTimeouts.shift()
+                    if (isin) {
+                        document.getElementById('deck-area').children[0].appendChild(newCard)
+                    } else {
+                        document.getElementById('deck-area').children[1].appendChild(newCard)
+                    }
+                }, nDisplayed++ * (totalTime / length)))
+            }
+        }
+    }
+
+    function deckMode(isHamburger) {
+        if (!isHamburger) {
+            document.getElementById('hamburger-mode').classList.remove('selected')
+            document.getElementById('twobox-mode').classList.add('selected')
+            loadDeck(false)
+        } else {
+            document.getElementById('hamburger-mode').classList.add('selected')
+            document.getElementById('twobox-mode').classList.remove('selected')
+            loadDeck(true)
+        }
+    }
+
+    let showingClarity = false
+
+    function clarity() {
+        showingClarity = !showingClarity
+        document.getElementById('clarity-bg').style.display = showingClarity ? 'block' : 'none'
+        document.getElementById('clarity').style.display = showingClarity ? 'block' : 'none'
+    }
+
+    function toggleDeck() {
+        showingDeck = !showingDeck
+        document.getElementById('popup-bg').style.display = showingDeck ? 'block' : 'none'
+        document.getElementById('popup').style.display = showingDeck ? 'block' : 'none'
+        if (showingDeck) {
+            document.getElementById('hamburger-mode').classList.add('selected')
+            document.getElementById('twobox-mode').classList.remove('selected')
+            loadDeck(true)
+        }
+    }
+
+    function toggleAuto(autocheck) {
+        auto = autocheck.checked
+        if (!auto) { 
+            newestContinueTimeoutID = -1 
+        } else if (document.getElementById('continue-link')) {
+            forceNext()
+        }
+    }
+
+    function transmission(str, hasAContinueStr = false) {
+        if (auto && newestContinueTimeoutID != -1) {
+            window.clearTimeout(newestContinueTimeoutID)
+        }
+        document.getElementById("terminal").innerHTML += "<div class=\"transmission-container\"><p class=\"transmission\">" + str + "</p></div>"
+        document.getElementById("terminal-box").scrollTo(0, document.getElementById("terminal-box").scrollHeight)
+        if (auto && hasAContinueStr) {
+            window.setTimeout(() => {
+                newestContinueTimeoutID = window.setTimeout(forceNext, autodelay)
+            }, 20)
+        }
+    }
+
+    function forceNext() {
+        forceJiggle(document.getElementById('continue-link').parentElement)
+        window.setTimeout(() => {document.getElementById('continue-link').click()}, 200)
+    }
+
+    function stringifyPlayer(player, asOption = false, specialCard = '', specialCardOwner = -1, specialCardIndexInHand = -1, idx = -1) {
+        if (asOption) {
+            return `<u class='somebody-link' style='cursor: pointer; color: var(--player${(player.id) % 10})' id='player-button-${player.id}' onclick="enactSpecialCard('${specialCard}', ${specialCardOwner}, ${specialCardIndexInHand}, ${player.id}); document.getElementById('player-button-${player.id}').parentElement.remove(); selectingPlayer = false">${player.name}</u>${idx < charTypes.length ? ` <span class='keybind'>${charTypes[idx].toUpperCase()}</span>` : ''}`
+        }
+        return `<span style='color: var(--player${(player.id) % 10})'>${player.name}</span>`
+    }
+
+    function enactSpecialCard(type, ownerID, indexInHand, targetID) {
+        const owner = players.find((x) => x.id == ownerID)
+        const target = players.find((x) => x.id == targetID)
+        const actionCard = Array.from(owner.handElement.children)[indexInHand]
+        switch (type) {
+            case 'secondchance':
+                const anteCard = document.createElement('div')
+                anteCard.className = 'card antecard'
+                anteCard.id = 'antecard'
+                target.handElement.appendChild(anteCard)
+                animateFromAToB(actionCard, anteCard)
+                owner.hand = owner.hand.filter((x,i) => i != indexInHand)
+                target.hand = [...target.hand, 'secondchance']
+                window.setTimeout(()=>{
+                    document.getElementById('antecard').outerHTML = `<div class='card cardsecondchance'></div>`
+                    actionCard.remove()
+                    transmission(`${stringifyPlayer(owner)} gives a surplus ${descriptors.get('secondchance')} card to ${stringifyPlayer(target)}. ${continueStr}`, true)
+                },200)
+                break
+            case 'flip3':
+                discard(actionCard)
+                owner.hand = owner.hand.filter((x,i) => i != indexInHand)
+                window.setTimeout(()=>{
+                    queue.unshift({action: 'resolve', parameter: targetID})
+                    for (let i = 3; i >= 1; i--) {
+                        queue.unshift({action: 'givecardto', parameter: targetID, nth: i})
+                    }
+                    transmission(`${stringifyPlayer(owner)} uses a ${descriptors.get('flip3')} card on ${stringifyPlayer(target)}. ${stringifyPlayer(target)} is forced to take 3 cards! ${continueStrOnce}`, true)
+                },200)
+                break
+            case 'freeze':
+                discard(actionCard)
+                owner.hand = owner.hand.filter((x,i) => i != indexInHand)
+                window.setTimeout(() => {
+                    target.alive = false
+                    target.itemElement.classList.add('inactive')
+                    target.itemElement.classList.add('frozen')
+                    endCheck()
+                    transmission(`${stringifyPlayer(owner)} uses a ${descriptors.get('freeze')} card on ${stringifyPlayer(target)}. ${stringifyPlayer(target)} is forced to freeze! ${continueStr}`, true)
+                })
+                break
+            default:
+                break
+        }
+    }
+
+    function reverse(array) {
+        return array.map((x,i) => array[array.length - i - 1])
+    }
+
+    function displayScoreChangingTo(element, destination) {
+        const start = +element.innerText
+        if (start == destination) {
+            return
+        }
+        const direction = (destination > start) ? 1 : -1
+        const totalTimes = Math.abs(destination - start)
+        let current = start
+        let times = 0
+        const interval = window.setInterval(() => {
+            current += direction
+            element.innerHTML = conditionallyMagnify(current)
+            if (current == destination) {
+                window.clearInterval(interval)
+            }
+            if (times++ >= 12) {
+                element.innerHTML = conditionallyMagnify(destination)
+                window.clearInterval(interval)
+            }
+        }, 40)
+    }
+
+    function unpackAction(command) {
+        /*
+        * startofcycle
+        * turnof
+        * givecardto (incl. evaluatescore)
+        * resolve
+        * endofround
+        */
+        console.log(command)
+        const player = players.find((x) => x.id == command.parameter) // all but turnof
+        switch (command.action) {
+            case 'startcycle':
+                queue = [...players.filter((x) => x.alive).map((x) => {
+                    return {
+                        action: 'turnof',
+                        parameter: x.id
+                    }
+                }), {
+                    action: 'startcycle'
+                }]
+                document.getElementById('cycle-n').innerHTML = `${++cycleN}`
+                break
+            case 'turnof':
+                if (!player.alive) {
+                    return
+                }
+                document.getElementById('goingplayer').innerHTML = stringifyPlayer(player)
+                script.unshift({line: `It's ${stringifyPlayer(player)}'s turn...
+                </p><p class="continue-str"><u class="continue-link" id="hit-link" onclick="hit(${player.id}); document.getElementById('hit-link').parentElement.remove()">HIT</u> <span class='keybind'>H</span> ⋅ <u class="continue-link" id="stay-link" onclick="stay(${player.id}); document.getElementById('stay-link').parentElement.remove()">STAY</u> <span class='keybind'>S</span>`, continueStr: false})
+                break
+            case 'newround':
+                script.push({line: `Starting new round... ${continueStr}`, continueStr: true})
+                window.setTimeout(() => {
+                    queue.push({action: 'startcycle'})
+                    const totalTime = 750
+                    let cardsInHands = players.map((x) => x.handElement.children.length).reduce((a,c) => a+c, 0)
+                    if (cardsInHands == 0) {
+                        cardsInHands = 1
+                    }
+                    let nDiscarded = 0
+                    players.forEach((x) => {
+                        displayScoreChangingTo(x.previousRoundsScoreElement, x.previousRoundsScore)
+                        displayScoreChangingTo(x.roundScoreElement, 0)
+                        displayScoreChangingTo(x.totalScoreElement, x.totalScore)
+
+                        // clear out elements
+                        x.itemElement.classList.remove('inactive', 'frozen', 'staying', 'busted')
+                        
+                        reverse(Array.from(x.handElement.children)).forEach((y,i) => {
+                            window.setTimeout(() => {
+                                discard(y)
+                            }, nDiscarded++ * (totalTime / cardsInHands))
+                        })
+                    })
+                    window.setTimeout(() => {
+                        forceJiggle(document.getElementById('discard'))
+                    }, totalTime)
+                    document.getElementById('round-n').innerHTML = `${++roundN}`
+                    cycleN = 0
+                }, 250)
+                break
+            case 'givecardto':
+                if (!player.alive) {
+                    break
+                }
+
+                if (currentDeck.length == 0) {
+                    // shuffle and try again
+                    window.setTimeout(()=>{
+                        currentDeck = shuffleHash(new Date().toISOString())
+                        fullDeck = currentDeck.map((x) => {
+                            return {type: x, in: true}
+                        })
+                        document.getElementById('drawpile').style.opacity = '1'
+                        document.getElementById('discard').innerHTML = '<div class="card antecard" style="background: var(--bgunknown)"></div>'
+                        forceJiggle(document.getElementById('drawpile'))
+                        document.getElementById('cards-n').innerHTML = currentDeck.length
+                        transmission('Draw pile is empty, shuffling...')
+                        window.setTimeout(() => {
+                            unpackAction(command)
+                        }, 500)
+                    }, 250)
+                    break
+                } else if (currentDeck.length == 1) {
+                    document.getElementById('drawpile').style.opacity = '0.5'
+                }
+                
+                giveCardTo(player, command.nth)
+
+                break
+            case 'resolve':
+                const actionIndex = findLastActionIndex(player.hand)
+                if (actionIndex >= 0) {
+                    const actionCard = player.hand[actionIndex]
+                    //console.log(actionCard)
+
+                    let viablePlayers = players.filter((x) => x.alive)
+
+                    switch (actionCard) {
+                        case 'secondchance':
+                            if (player.hand.filter((x,i) => i != actionIndex).includes('secondchance')) {
+                                // if we already have one, must give away
+                                viablePlayers = viablePlayers.filter((x) => !x.hand.includes('secondchance')) // cannot give to someone with second chance (this also eliminates themself)
+                                if (viablePlayers.length == 0) {
+                                    discardNthPlayerCard(player, actionIndex)
+                                    player.hand = player.hand.filter((x,i) => i != actionIndex)
+                                    script.unshift({line: `No one to give ${stringifyPlayer(player)}'s' surplus ${descriptors.get('secondchance')} card to! Discarding... ${continueStr}`, continueStr: true})
+                                } else {
+                                    script.unshift({line: `${stringifyPlayer(player)} must select a player to give their surplus ${descriptors.get('secondchance')} card to... </p><p class="continue-str">${viablePlayers.map((x, i) => stringifyPlayer(x,true,'secondchance',player.id,actionIndex, i)).join(' ⋅ ')}`, continueStr: false, chooseSomebody: true})
+                                }
+                                queue.unshift({action: 'resolve', parameter: player.id})
+                            }
+                            break
+                        default:
+                            script.unshift({line: `${stringifyPlayer(player)} must select a player to target with their ${descriptors.get(actionCard)} card... </p><p class="continue-str">${viablePlayers.map((x, i) => stringifyPlayer(x,true,actionCard,player.id,actionIndex, i)).join(' ⋅ ')}`, continueStr: false, chooseSomebody: true})
+                            queue.unshift({action: 'resolve', parameter: player.id})
+                            break
+                    }
+                }
+                break
+            default:
+                break
+        }
+    }
+
+    function findLastActionIndex(hand) {
+        for (let i = hand.length - 1; i >= 0; i--) {
+            if (action(hand[i]) && (hand[i] != 'secondchance' || hand.slice(i+1).includes('secondchance'))) {
+                return i
+            }
+        }
+        return -1
+    }
+
+    function animateFromAToB(a, b, destroyAfter, duration = 250) {
+        a.style.zIndex = 200
+        aRect = a.getBoundingClientRect()
+        bRect = b.getBoundingClientRect()
+        a.animate({
+            transform: `translate(${bRect.x - aRect.x}px, ${bRect.y - aRect.y}px)`
+        }, {duration: duration, easing: "ease-in-out"})
+        if (destroyAfter) {
+            window.setTimeout(function(){
+                a.style.opacity = 0
+            }, duration - 50)
+            window.setTimeout(function(){
+                a.remove()
+            }, duration + 10)
+        } else {
+            window.setTimeout(function(){
+                a.style.transform = 'none'
+            }, duration + 100)
+        }
+    }
+
+    function giveCardTo(player, nth) {
+        const anteCard = document.createElement('div')
+        anteCard.className = 'card antecard'
+        anteCard.id = 'antecard'
+        player.handElement.appendChild(anteCard)
+
+        const floatingCard = document.createElement('div')
+        floatingCard.className = 'card cardunknown'
+        const drawpileRect = document.getElementById('drawpile').getBoundingClientRect()
+        floatingCard.style.position = 'fixed'
+        floatingCard.style.top = `${drawpileRect.top}px`
+        floatingCard.style.left = `${drawpileRect.left}px`
+        floatingCard.id = 'floatingcard'
+        document.getElementById('game').appendChild(floatingCard)
+
+        animateFromAToB(document.getElementById('floatingcard'), document.getElementById('antecard'))
+                
+        window.setTimeout(() => {
+            
+            document.getElementById('antecard').outerHTML = `<div class='card cardunknown' id='antecard'></div>`
+            document.getElementById('floatingcard').remove()
+
+            const cardkind = currentDeck.shift()
+            fullDeck[fullDeck.findIndex((x) => x.in)].in = false
+            document.getElementById('cards-n').innerHTML = currentDeck.length
+            document.getElementById('antecard').animate({
+                transform: "rotate3d(0, 1, 1, 180deg)"
+            }, {duration: 250, easing: "ease-in-out"})
+
+            window.setTimeout(() => {
+                const newCard = document.createElement('div')
+                newCard.className = `card card${cardkind}`
+                newCard.id = 'newcard'
+                newCard.style.transform = "rotate3d(0, 1, 1, -180deg)"
+                document.getElementById('antecard').outerHTML = newCard.outerHTML
+                document.getElementById('newcard').animate({
+                    transform: "rotate3d(0, 1, 1, 0deg)"
+                }, {duration: 250, easing: "ease-in-out"})
+
+                window.setTimeout(() => {
+                    document.getElementById('newcard').style.transform = ''
+                    document.getElementById('newcard').id = ''
+                }, 200)
+
+                transmission(`${stringifyPlayer(player)} got ${descriptors.get(cardkind)}! ${nth ? `<span style='color:#fffa'>(${nth}/3)</span>` : ''}${action(cardkind) ? nth == 1 || nth == 2 ? continueStrOnce : continueStr : ''}`, action(cardkind))
+                player.hand.push(cardkind)
+                if (!action(cardkind)) {
+                    window.setTimeout(() => reactToCard(player, nth == 1 || nth == 2), 250)
+                }
+            }, 200)
+        }, 250)
+    }
+
+    const numericCardkinds = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+    const additiveBonusCardkinds = ['plus2', 'plus4', 'plus6', 'plus8', 'plus10']
+    const actionCardkinds = ['freeze', 'flip3', 'secondchance']
+
+    function numeric(cardkind) {
+        return numericCardkinds.includes(cardkind)
+    }
+
+    function additiveBonus(cardkind) {
+        return additiveBonusCardkinds.includes(cardkind)
+    }
+
+    function action(cardkind) {
+        return actionCardkinds.includes(cardkind)
+    }
+
+    function discard(element) {
+        animateFromAToB(element, document.getElementById('discard'), true)
+        window.setTimeout(() => {
+            document.getElementById('discard').innerHTML = `<div class='${element.className}'></div>`
+        }, 200)
+    }
+
+    function discardNthPlayerCard(player, n) {
+        discard(Array.from(player.handElement.children)[n])
+    }
+
+    function reactToCard(player, isFromFlip3) {
+        /*
+        - if NUMERIC AND duplicate, check for schances. if schance:
+            - get rid of new card and schance.
+        - else...
+            - player is now out. announce (& set roundscore to 0) and display accordingly
+        - EVALUATESCORE & update accordingly.
+        */
+        const newCard = player.hand[player.hand.length - 1]
+        let busted = false
+        let lostSecondChance = false
+        if (numeric(newCard) && player.hand.slice(0,-1).includes(newCard)) {
+            // if you have fucked up bad
+            if (player.hand.includes('secondchance')) {
+                lostSecondChance = true
+                discardNthPlayerCard(player, player.hand.length - 1)
+                const secondChanceIndex = player.hand.indexOf('secondchance')
+                player.hand = player.hand.slice(0,-1).filter((x) => x != 'secondchance')
+                window.setTimeout(()=>{
+                    discardNthPlayerCard(player, secondChanceIndex)
+                },50)
+            } else {
+                // really bad
+                busted = true
+            }
+        }
+
+        // evaluate score
+        if (busted) {
+            player.roundScore = 0
+            player.totalScore = player.previousRoundsScore
+            player.alive = false
+            player.itemElement.classList.add('inactive')
+            player.itemElement.classList.add('busted')
+            
+            transmission(`${stringifyPlayer(player)} busted! ${stringifyPlayer(player)}'s score is now 0 <span style='color: #fffa'>(total ${player.totalScore})</span>. ${continueStr}`, true)
+        } else {
+            if (lostSecondChance) {
+                transmission(`${stringifyPlayer(player)} loses their ${descriptors.get('secondchance')} card! ${stringifyPlayer(player)}'s score stays at ${player.roundScore} <span style='color: #fffa'>(total ${player.totalScore})</span> ${isFromFlip3 ? continueStrOnce : continueStr}`, true)
+            } else {
+                player.roundScore = evaluateHand(player.hand)
+                player.totalScore = player.previousRoundsScore + player.roundScore
+                transmission(`${stringifyPlayer(player)}'s score is now ${player.roundScore} <span style='color: #fffa'>(total ${player.totalScore})</span>! ${isFromFlip3 ? continueStrOnce : continueStr}`, true)
+            }
+        }
+
+        displayScoreChangingTo(player.previousRoundsScoreElement, player.previousRoundsScore)
+        displayScoreChangingTo(player.roundScoreElement, player.roundScore)
+        displayScoreChangingTo(player.totalScoreElement, player.totalScore)
+        
+        endCheck()
+    }
+
+    function conditionallyMagnify(n) {
+        if (n >= threshold) {
+            return `<span class='winningscore'>${n}</span>`
+        }
+        return n
+    }
+
+    function evaluateHand(hand) {
+        const numericSum = hand.filter((x) => numeric(x)).map((x) => +x).reduce((a,c) => a + c, 0)
+        const multiplier = hand.includes('times2') ? 2 : 1
+        const bonusSum = hand.filter((x) => additiveBonus(x)).map((x) => +x.substring(4)).reduce((a,c) => a + c, 0)
+        return numericSum * multiplier + bonusSum
+    }
+
+    function forceJiggle(element) {
+        element.style.animation = 'cardtilt 0.3s ease-in-out'
+        window.setTimeout(() => {
+            element.style.animation = ''
+        }, 350)
+    }
+
+    function hit(id) {
+        const player = players.find((x) => x.id == id)
+        unpackAction({action: 'givecardto', parameter: id})
+        queue.unshift({action: 'resolve', parameter: id})
+        transmission(`${stringifyPlayer(player)} hit!`)
+    }
+
+    function stay(id) {
+        const player = players.find((x) => x.id == id)
+        player.alive = false
+        player.itemElement.classList.add('inactive')
+        player.itemElement.classList.add('staying')
+        
+        transmission(`${stringifyPlayer(player)} stayed! ${continueStr}`, true)
+        endCheck()
+    }
+
+    function endCheck() {
+        let endingRound = false
+        if (players.filter((x) => x.alive).length == 0) {
+            // all have stayed
+            queue = []
+            endingRound = true
+            script = [{line: `All players are out. End of round! ${continueStr}`, continueStr: true}]
+        } else if (players.filter((x) => x.roundScore > 0 && x.hand.filter((c) => numeric(c)).length >= 7).length > 0) {
+            // somebody has 7 numeric cards
+            const goodPlayer = players.find((x) => x.hand.filter((c) => numeric(c)).length >= 7)
+            queue = []
+            endingRound = true
+            forcingNonOnce = true
+            goodPlayer.roundScore += 15
+            script = [{line: `${stringifyPlayer(goodPlayer)} has 7 numeric cards and earns a 15-point bonus. End of round! ${continueStr}`, continueStr: true}]
+        }
+
+        if (endingRound) {
+
+            // ending round, check for winner
+            const maxScore = Math.max(...players.map((x) => x.totalScore))
+            if (maxScore >= threshold) {
+                const winners = players.filter((x) => x.totalScore == maxScore)
+                script.push({line: `<span style='color: var(--bgbonus)'>${winners.map((x) => stringifyPlayer(x)).slice(0,-1).join(', ')}${winners.length > 1 ? ' and ' : ''}${stringifyPlayer(winners[winners.length - 1])} ${winners.length == 1 ? 'has' : 'have'} won!</span> ${replayStr}`, continueStr: false})
+
+                // otherwise, reset & collate scores
+                queue = [{action: 'newround'}]
+                roundN = 1
+                players = players.map((x) => {
+                    return {...x,
+                        hand: [],
+                        alive: true,
+                        previousRoundsScore: 0,
+                        totalScore: 0,
+                        roundScore: 0
+                    }
+                })
+
+            } else {
+
+                // otherwise, reset & collate scores
+                queue = [{action: 'newround'}]
+                players = players.map((x) => {
+                    return {...x,
+                        hand: [],
+                        alive: true,
+                        previousRoundsScore: x.previousRoundsScore + x.roundScore,
+                        totalScore: x.previousRoundsScore + x.roundScore,
+                        roundScore: 0
+                    }
+                })
+
+            }
+        }
+    }
+
+    function readNextLine(avoidRepeat = false) {
+        if (!forcingNonOnce && avoidRepeat) {
+            const nextAction = queue.shift()
+            unpackAction(nextAction)
+        } else {
+            forcingNonOnce = false
+            while (script.length == 0) {
+                const nextAction = queue.shift()
+                unpackAction(nextAction)
+            }
+            const nextLine = script.shift()
+            if (nextLine.chooseSomebody) {
+                selectingPlayer = true
+            }
+            transmission(nextLine.line, nextLine.continueStr)
+        }
+    }
+
+    function finishConfigs() {
+
+        threshold = +document.getElementById('threshold').value
+        if (Number.isNaN(threshold) || threshold < 1) {
+            threshold = 200
+        } else {
+            threshold = Math.round(threshold)
+        }
+        document.getElementById('goal').innerHTML = threshold
+
+        // make players
+        players = Array.from(document.getElementById('player-list').getElementsByTagName('input')).map((x,i) => {
+            return {
+                name: x.value || 'no-name nelly',
+                id: i+1,
+                hand: [],
+                alive: true,
+                roundScore: 0,
+                previousRoundsScore: 0,
+                totalScore: 0
+            }
+        })
+        document.getElementById('goingplayer').innerHTML = stringifyPlayer(players[0])
+
+        // make player zones
+        document.getElementById('player-area').innerHTML = `<div class='player-row'>${players.map((x,i) => `<div class='player-item' style='background: var(--player${(i + 1) % 10}-bg); color: var(--player${(i + 1) % 10}); border-left: 3px solid var(--player${(i + 1) % 10})'><div class='player-name'>${x.name} ⋅&nbsp;<div class='scorecard'><div class='pair'><span class='previous-rounds-score'>0</span><span>prior rounds</span></div><span> + </span><div class='pair'><span class='round-score'>0</span><span>this round</span></div><span> = </span><div class='pair'><span class='total-score'>0</span><span>total</span></div></div></div><div class='player-hand'></div></div>${i % 3 == 2 ? `</div><div class='player-row'>` : ''}`).join('')}</div>`
+
+        window.setTimeout(() => {
+            players = players.map((x,i) => {
+                return {...x, 
+                    itemElement: document.getElementsByClassName('player-item')[i], 
+                    handElement: document.getElementsByClassName('player-hand')[i],
+                    previousRoundsScoreElement: document.getElementsByClassName('previous-rounds-score')[i],
+                    roundScoreElement: document.getElementsByClassName('round-score')[i],
+                    totalScoreElement: document.getElementsByClassName('total-score')[i],
+                }
+            })
+        }, 100)
+
+        // initialize queue
+        queue = [...players.map((x,i) => {
+            return {
+                action: 'turnof',
+                parameter: i+1
+            }
+        }), {
+            action: 'startcycle'
+        }]
+
+        // shuffle
+        currentDeck = shuffleHash(new Date().toISOString())
+        fullDeck = currentDeck.map((x) => {
+            return {type: x, in: true}
+        })
+
+        document.getElementById('config').style.display = 'none'
+        document.getElementById('game').style.display = 'block'
+
+        transmission('Starting new round...')
+
+        window.setTimeout(()=>{
+            readNextLine()
+        },250)
+    }
+
+    function deletePlayer(row) {
+        row.parentElement.remove()
+        document.getElementById('add-player').style.background = `var(--player${--nPlayers % 10 + 1})`
+    }
+
+    function addPlayer() {
+        const newRow = document.createElement('li')
+        newRow.innerHTML = '<input type="text" /> <span style="cursor: pointer; user-select: none" onclick="deletePlayer(this)">❌</span>'
+        document.getElementById('player-list').appendChild(newRow)
+        document.getElementById('add-player').style.background = `var(--player${++nPlayers % 10 + 1})`
+    }
+
+    const pseudorands = [37414, 58064, 48739, 48914, 23645, 16561, 51565, 46324, 30836, 44813, 44706, 53774, 20976, 58326, 34398, 34451, 37428, 35517, 43849, 37072, 15215, 41843, 46634, 64276, 10639, 8110, 44861, 1007, 23558, 22089, 35095, 38241, 43997, 20578, 2485, 60233, 41574, 37326, 26967, 9601, 35252, 4703, 3141, 29075, 19218, 27679, 62928, 38426, 26546, 60178]
+
+    function shuffleHash(str) {
+        str = str.toUpperCase()
+        let hash = pseudorands[str.length % 50]
+        for (let i = 0; i < str.length; i++) {
+            hash *= (pseudorands[Math.abs(i % 50)] % 2109)
+            hash = Math.floor(hash / pseudorands[Math.abs((35 + i) % 50)])
+            hash += (Math.pow(str.charCodeAt(i), 3) * pseudorands[Math.abs((50 - i) % 50)]) - (pseudorands[Math.abs((25 + i) % 50)] * pseudorands[Math.abs((25 - i + 1) % 50)])
+        }
+        hash = Math.abs(hash) + 1297
+
+        const unshuffledInitCards = [...initCards]
+        const final = []
+
+        for (let i = unshuffledInitCards.length; i > 0; i--) {
+            let selection = hash % i
+            final.push(unshuffledInitCards[selection])
+            unshuffledInitCards.splice(selection,1)
+            hash -= i
+        }
+
+        return final
+    }
+</script>
+</html>

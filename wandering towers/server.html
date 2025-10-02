@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Wandering Towers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="styles.css"> 
+</head>
+<body>
+    <div id="configs-wrapper">
+        <div id="configs">
+        <div>
+            <table id="player-configs-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Color</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="player-configs"></tbody>
+            </table>
+            <div class="button" id="add-player" onclick="addPlayer()">+ add player</div>
+        </div>
+        <div>
+            <div id="spell-configs"></div>
+        </div>
+    </div>
+        <div id="finish-button" class="button" onclick="finishConfigs()">finish</div>
+        <a href="client" id="client-link" class="button">client</a>
+    </div>
+    <div id="game">
+        <div id="board-wrapper">
+            <div id="board">
+            </div>
+        </div>
+        <div id="joystick-wrapper">
+            <div id="joystick" onmousedown="startJoystickFollowListeners(event)"></div>
+        </div>
+        <div id="sidebar">
+            <div id="terminal-wrapper">
+                <div id="terminal"></div>
+            </div>
+            <div id="player-panel"></div>
+        </div>
+        <div id="spells-wrapper"></div>
+    </div>
+</body>
+<script>
+
+// #region ENTITY MOUSE-EVENT HANDLERS
+
+    const DO_NOTHING = (param = false) => { return }
+
+    const CLICK_HANDLERS = {
+        glade: DO_NOTHING,
+        tower: DO_NOTHING,
+        wizard: DO_NOTHING
+    }
+
+    const handleGladeClick = (gladeElement) => {
+        const id = gladeElement.children[0].id.replace(/^ghost-/, '')
+        CLICK_HANDLERS.glade(id)
+    }
+
+    const handleTowerClick = (towerElement) => {
+        const id = towerElement.id.replace(/^ghost-/, '')
+        CLICK_HANDLERS.tower(id)
+    }
+
+    const handleWizardClick = (wizardElement) => {
+        const id = wizardElement.id.replace(/^ghost-/, '')
+        CLICK_HANDLERS.wizard(id)
+    }
+
+    const HOVER_HANDLERS = {
+        tower: DO_NOTHING,
+        wizard: DO_NOTHING
+    }
+
+    let hoveredTowerId = null, hoveredWizardId = null
+
+    const respondToHover = () => {
+        const curHoveredTowerElement = document.querySelector('.tower-wrapper:hover')
+        const curHoveredTowerId = curHoveredTowerElement ? curHoveredTowerElement.id : null
+        if (curHoveredTowerId != hoveredTowerId) {
+            const on = curHoveredTowerId != null
+            const isGhost = !on || curHoveredTowerElement.id.startsWith('ghost-')
+            hoveredTowerId = curHoveredTowerId
+            if (!on || !isGhost) {
+                HOVER_HANDLERS.tower(on, curHoveredTowerId)
+            }
+        }
+
+        const curHoveredWizardElement = document.querySelector('.wizard:hover')
+        const curHoveredWizardId = curHoveredWizardElement ? curHoveredWizardElement.id : null
+        if (curHoveredWizardId != hoveredWizardId) {
+            const on = curHoveredWizardId != null
+            const isGhost = !on || curHoveredWizardElement.id.startsWith('ghost-')
+            hoveredWizardId = curHoveredWizardId
+            if (!on || !isGhost) {
+                HOVER_HANDLERS.wizard(on, curHoveredWizardId)
+            }
+        }
+    }
+
+    document.getElementById('board').addEventListener('mousemove', respondToHover)
+    document.getElementById('board').addEventListener('mouseleave', respondToHover)
+    
+    const clearWizardHandlers = () => {
+        CLICK_HANDLERS.wizard = DO_NOTHING
+        HOVER_HANDLERS.wizard = DO_NOTHING
+    }
+
+    const clearTowerHandlers = () => {
+        CLICK_HANDLERS.tower = DO_NOTHING
+        HOVER_HANDLERS.tower = DO_NOTHING
+    }
+
+// #endregion
+
+// #region SPELLSTUFFS
+
+const SpellActions = {
+    NUDGE_RAVENSKEEP: (price) => {
+        const rkOldGlade = getGladeById(getTowerById('ravenskeep').gladeImOn)
+        for (let rkDisp = 1; rkDisp < 16; rkDisp++) {
+            const rkNewGlade = nthNextGlade(rkOldGlade, rkDisp)
+            const rkDest = genericGetter(topOfGladeId(rkNewGlade))
+            if (rkDest.wizardsOnMe.length == 0) {
+                rkOldGlade.towersOnMe = rkOldGlade.towersOnMe.slice(0, -1)
+                rkNewGlade.towersOnMe = [...rkNewGlade.towersOnMe, 'ravenskeep']
+                const ravenskeep = getTowerById('ravenskeep')
+                ravenskeep.gladeImOn = rkNewGlade.id
+                break
+            }
+        }
+        displayBoard()
+        getPlayerById(actingPlayer.id).potions.full -= price
+        getPlayerById(actingPlayer.id).potions.spent += price
+        displayPlayerPanel()
+        SecondaryTurnActions.SPEND_ACTION('spell')
+        BasicActions.SEE_OPTIONS()
+    },
+    FREE_WIZARD: (price) => {
+        transmission([`Choose a tower to check underneath it.`, generateActionList([GO_BACK()])], true)
+        CLICK_HANDLERS.tower = (towerId) => {
+            if (towerId == 'ravenskeep') return
+
+            const tower = getTowerById(towerId)
+            const glade = getGladeById(tower.gladeImOn)
+
+            const towerIndex = glade.towersOnMe.findIndex((id) => id == towerId)
+            const affectedTowerIds = glade.towersOnMe.slice(towerIndex)
+            const unaffectedTowerIds = glade.towersOnMe.slice(0, towerIndex)
+
+            glade.towersOnMe = unaffectedTowerIds
+            displayBoard()
+            bounceGlade(glade.id)
+
+            const exposedSurface = genericGetter(topOfGladeId(glade))
+            const exposedWizardIds = exposedSurface.wizardsOnMe
+            const exposedWizards = exposedWizardIds.map((id) => getWizardById(id))
+            const myExposedWizard = exposedWizards.find((wizard) => wizard.playerId == actingPlayer.id)
+
+            glade.towersOnMe = [...unaffectedTowerIds, ...affectedTowerIds]
+            const topTower = genericGetter(topOfGladeId(glade))
+
+            if (myExposedWizard) {
+                topTower.wizardsOnMe.push(myExposedWizard.id)
+                exposedSurface.wizardsOnMe = exposedSurface.wizardsOnMe.filter((id) => id != myExposedWizard.id)
+            }
+
+            transmission([namePlayerById(actingPlayer.id), myExposedWizard ? ` found their wizard!` : ` failed to find their wizard...`, generateActionList([{
+                icon: '⬇️',
+                name: 'Put tower back!',
+                onclick: `SpellActions.FREE_WIZARD_REVERT('${glade.id}')`
+            }])])
+
+            clearTowerHandlers()
+            getPlayerById(actingPlayer.id).potions.full -= price
+            getPlayerById(actingPlayer.id).potions.spent += price
+            displayPlayerPanel()
+            SecondaryTurnActions.SPEND_ACTION('spell')
+        }
+    },
+    FREE_WIZARD_REVERT: (gladeId) => {
+        displayBoard()
+        bounceGlade(gladeId)
+        BasicActions.SEE_OPTIONS()
+    },
+    FILL_POTION: (price) => {
+        getPlayerById(actingPlayer.id).potions.empty--
+        getPlayerById(actingPlayer.id).potions.full += 1 - price
+        getPlayerById(actingPlayer.id).potions.spent += price
+        displayPlayerPanel()
+        SecondaryTurnActions.SPEND_ACTION('spell')
+        BasicActions.SEE_OPTIONS()
+    },
+}
+
+const SPELLS = [
+    {id: 0, name: 'Advance wizard', icon: [{tag: 'img', src: './wizards/generic.png'}, '➡️'], price: 2, action: () => SecondaryTurnActions.MOVE_WIZARD_BY(1, 'spell', 2), description: 'Move any wizard -- not just your own -- ahead by 1 space.', in: true},
+    {id: 1, name: 'Headwind wizard', icon: [{tag: 'img', src: './wizards/generic.png'}, '⬅️'], price: 2, action: () => SecondaryTurnActions.MOVE_WIZARD_BY(-1, 'spell', 2), description: 'Move any wizard -- not just your own -- back by 1 space.', in: true},
+    {id: 2, name: 'Advance tower', icon: ['🏯➡️'], price: 1, action: () => SecondaryTurnActions.MOVE_TOWER_BY(2, 'spell', 1), description: 'Move a tower ahead by 2 spaces.', in: true},
+    {id: 3, name: 'Headwind tower', icon: ['🏯⬅️'], price: 1, action: () => SecondaryTurnActions.MOVE_TOWER_BY(-2, 'spell', 1), description: 'Move a tower back by 2 spaces.', in: true},
+    {id: 4, name: 'Nudge ravenskeep', icon: ['⬛➡️'], price: 2, action: () => SpellActions.NUDGE_RAVENSKEEP(SPELLS[4].price), description: 'Move the Ravenskeep to the next unoccupied space.', in: false},
+    {id: 5, name: 'Free wizard', icon: [{tag: 'img', src: './wizards/generic.png'}, '⬆️'], price: 1, action: () => SpellActions.FREE_WIZARD(SPELLS[5].price), description: 'Peek under a tower. If one of your wizards is there, move it to the top of the tower.', in: false},
+    {id: 6, name: 'Fill potion', icon: [{tag: 'img', src: './potions/generic.png'}, '↩️'], price: 2, action: () => SpellActions.FILL_POTION(SPELLS[6].price), description: 'Spend two full potions to fill a third.', in: false, condition: () => { return getPlayerById(actingPlayer.id).potions.empty > 0 }},
+]
+
+const toggleSpell = (id) => {
+    SPELLS[id].in = !SPELLS[id].in
+    displaySpellsConfigs()
+}
+
+const spellDescriptorElementTemplate = (spell) => {
+    return {
+        classList: ['spell-descriptor', ...(spell.in ? [] : ['not-in'])],
+        onclick: `toggleSpell(${spell.id})`,
+        children: [
+            spellBadgeElementTemplate(spell),
+            {
+                classList: ['spell-info'],
+                children: [
+                    {
+                        classList: ['spell-name'],
+                        children: [spell.name]
+                    },
+                    {
+                        children: [spell.description]
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+const spellBadgeElementTemplate = (spell) => {
+    return {
+        classList: ['spell-badge'],
+        children: [
+            {
+                classList: ['spell-icon'],
+                children: spell.icon
+            },
+            {
+                classList: ['spell-price'],
+                children: [...Array(spell.price)].map(() => {
+                    return {tag: 'img', src: './potions/generic.png'}
+                })
+            }
+        ]
+    }
+}
+
+// #endregion
+
+// #region QUEUESTUFFS: BasicActions, TurnActions, SecondaryTurnActions
+
+    const exorciseBoard = () => {
+        glades.forEach((glade) => {
+            glade.wizardsOnMe = glade.wizardsOnMe.filter((wizard) => !wizard.startsWith('ghost-'))
+            glade.towersOnMe = glade.towersOnMe.filter((tower) => !tower.startsWith('ghost-'))
+        })
+        towers.forEach((tower) => {
+            tower.wizardsOnMe = tower.wizardsOnMe.filter((tower) => !tower.startsWith('ghost-'))
+        })
+        displayBoard()
+    }
+
+    const topOfGladeId = (glade) => {
+        if (glade.towersOnMe.length == 0) {
+            return glade.id
+        }
+        return glade.towersOnMe[glade.towersOnMe.length - 1]
+    }
+
+    const nthNextGlade = (glade, n) => {
+        return glades[(glade.numId + n + 16) % 16]
+    }
+
+    const REVERT_TERMINAL = () => {
+        clearWizardHandlers()
+        clearTowerHandlers()
+	console.log(document.querySelector(".transmission-container:last-child"))
+        document.querySelector(".transmission-container:last-child").remove()
+        const otherLast = document.querySelector(".transmission-container-dice-message:last-child, .transmission-container-spell-notify:last-child")
+        if (otherLast) {
+            otherLast.remove()
+        }
+        document.getElementById("terminal-wrapper").scrollTo(0, document.getElementById("terminal-wrapper").scrollHeight)
+    }
+
+    const GO_BACK = () => {
+        return {icon: '⬅️', name: 'Go back', onclick: onclick || 'REVERT_TERMINAL()'}
+    }
+
+    const SecondaryTurnActions = {
+        SPEND_ACTION: (action) => {
+            actingPlayer.availableActions.forgo = false
+            switch (action) {
+                case 'all':
+                    actingPlayer.availableActions.spell = false
+                case 'forgo':
+                    actingPlayer.availableActions.card1 = false
+                    actingPlayer.availableActions.card2 = false
+                    break
+                case 'card':
+                    actingPlayer.availableActions.card2 = actingPlayer.availableActions.card1
+                    actingPlayer.availableActions.card1 = false
+                    break
+                case 'spell':
+                    actingPlayer.availableActions.spell = false
+                    break
+                default:
+                    break
+            }
+        },
+        MOVE_WIZARD_BY: (disp, actionType, potionCost = 0) => {
+            const absDisp = Math.abs(disp)
+            transmission([`Choose ${actionType == 'spell' ? 'a wizard' : 'one of your wizards'} to move${absDisp != disp ? ' backwards' : ''} by ${absDisp} space${absDisp == 1 ? '' : 's'}.`, generateActionList([GO_BACK()])], true)
+            HOVER_HANDLERS.wizard = (on, wizardId) => {
+                exorciseBoard()
+                if (!on) return
+                const wizard = getWizardById(wizardId)
+                if (wizard.playerId != actingPlayer.id && actionType != 'spell') {
+                    return
+                }
+                const oldGlade = getGladeById(wizard.gladeImOn)
+                const newGlade = nthNextGlade(oldGlade, disp)
+                const topOfNewGlade = genericGetter(topOfGladeId(newGlade))
+                const ghostWizard = `ghost-${wizardId}`
+                topOfNewGlade.wizardsOnMe.push(ghostWizard)
+                displayBoard()
+            }
+            CLICK_HANDLERS.wizard = (wizardId) => {
+                exorciseBoard()
+                const wizard = getWizardById(wizardId)
+                if (wizard.playerId != actingPlayer.id && actionType != 'spell') {
+                    return
+                }
+                const oldGlade = getGladeById(wizard.gladeImOn)
+                const newGlade = nthNextGlade(oldGlade, disp)
+                const topOfNewGlade = genericGetter(topOfGladeId(newGlade))
+                const topOfOldGlade = genericGetter(wizard.surfaceImOn)
+
+                topOfOldGlade.wizardsOnMe = topOfOldGlade.wizardsOnMe.filter((id) => id != wizardId)
+                topOfNewGlade.wizardsOnMe.push(wizardId)
+                wizard.gladeImOn = newGlade.id
+                wizard.surfaceImOn = topOfNewGlade.id
+
+                const intoRavenskeep = topOfNewGlade.id == 'ravenskeep'
+
+                if (intoRavenskeep) {
+                    getPlayerById(wizard.playerId).wizardsInRavenskeep++
+                    for (let rkDisp = 1; rkDisp < 16; rkDisp++) {
+                        const rkNewGlade = nthNextGlade(newGlade, rkDisp)
+                        const rkDest = genericGetter(topOfGladeId(rkNewGlade))
+                        if (rkDest.isBlue && rkDest.wizardsOnMe.length == 0) {
+                            const rkOldGlade = newGlade
+                            rkOldGlade.towersOnMe = rkOldGlade.towersOnMe.slice(0, -1)
+                            rkNewGlade.towersOnMe = [...rkNewGlade.towersOnMe, 'ravenskeep']
+                            const ravenskeep = getTowerById('ravenskeep')
+                            ravenskeep.gladeImOn = rkNewGlade.id
+                            break
+                        }
+                    }
+                    SecondaryTurnActions.SPEND_ACTION('all')
+                } else {
+                    SecondaryTurnActions.SPEND_ACTION(actionType)
+                }
+
+                displayBoard()
+                bounceGlade(newGlade.id)
+                getPlayerById(actingPlayer.id).potions.full -= potionCost
+                getPlayerById(actingPlayer.id).potions.spent += potionCost
+                displayPlayerPanel()
+
+                clearWizardHandlers()
+                transmission([
+                    namePlayerById(actingPlayer.id),
+                    ` moved a wizard${absDisp != disp ? ' backwards' : ''} by ${absDisp} space${absDisp == 1 ? '' : 's'}${intoRavenskeep  ? ' into the Ravenskeep!' : '.'}`
+                ])
+                BasicActions.SEE_OPTIONS()
+            }
+        },
+        MOVE_TOWER_BY: (disp, actionType, potionCost = 0) => {
+            const absDisp = Math.abs(disp)
+            transmission([`${actionType == 'forgo' ? 'Discard your hand. Then, choose' : 'Choose'} a tower to move${absDisp != disp ? ' backwards' : ''} by ${absDisp} space${absDisp == 1 ? '' : 's'}.`, generateActionList([GO_BACK()])], true)
+            HOVER_HANDLERS.tower = (on, towerId) => {
+                exorciseBoard()
+                if (!on) return
+                if (towerId == 'ravenskeep') return
+                const tower = getTowerById(towerId)
+                const oldGlade = getGladeById(tower.gladeImOn)
+                const newGlade = nthNextGlade(oldGlade, disp)
+                if (newGlade.towersOnMe.includes('ravenskeep')) return
+                const towerIndex = oldGlade.towersOnMe.findIndex((id) => id == towerId)
+                const affectedTowerIds = oldGlade.towersOnMe.slice(towerIndex)
+                const ghostTowerIds = affectedTowerIds.map((id) => `ghost-${id}`)
+                newGlade.towersOnMe = [...newGlade.towersOnMe, ...ghostTowerIds]
+                displayBoard()
+            }
+            CLICK_HANDLERS.tower = (towerId) => {
+                exorciseBoard()
+                if (towerId == 'ravenskeep') return
+                const tower = getTowerById(towerId)
+                const oldGlade = getGladeById(tower.gladeImOn)
+                const newGlade = nthNextGlade(oldGlade, disp)
+                if (newGlade.towersOnMe.includes('ravenskeep')) return
+                const towerIndex = oldGlade.towersOnMe.findIndex((id) => id == towerId)
+                const affectedTowerIds = oldGlade.towersOnMe.slice(towerIndex)
+                const unaffectedTowerIds = oldGlade.towersOnMe.slice(0, towerIndex)
+                const affectedTowers = affectedTowerIds.map(getTowerById)
+                const affectedWizards = wizards.filter((wizard) => affectedTowerIds.includes(wizard.surfaceImOn))
+                const imprisonedAnyone = genericGetter(topOfGladeId(newGlade)).wizardsOnMe.length > 0
+
+                oldGlade.towersOnMe = unaffectedTowerIds
+                newGlade.towersOnMe = [...newGlade.towersOnMe, ...affectedTowerIds]
+                affectedTowers.forEach((thisTower) => {
+                    thisTower.gladeImOn = newGlade.id
+                })
+                affectedWizards.forEach((thisWizard) => {
+                    thisWizard.gladeImOn = newGlade.id
+                })
+
+                displayBoard()
+                bounceGlade(newGlade.id)
+
+                clearTowerHandlers()
+                transmission([
+                    namePlayerById(actingPlayer.id),
+                    ` ${actionType == 'forgo' ? 'discarded their hand and ' : ''} moved a tower${absDisp != disp ? ' backwards' : ''} by ${absDisp} space${absDisp == 1 ? '' : 's'}.`
+                ])
+                if (imprisonedAnyone) {
+                    transmission([
+                        namePlayerById(actingPlayer.id),
+                        ` has imprisoned a wizard${getPlayerById(actingPlayer.id).potions.empty > 0 ? ' and earned a potion' : ''}!`
+                    ])
+                }
+
+                if (imprisonedAnyone && getPlayerById(actingPlayer.id).potions.empty > 0) {
+                    getPlayerById(actingPlayer.id).potions.empty--
+                    getPlayerById(actingPlayer.id).potions.full++
+                }
+                getPlayerById(actingPlayer.id).potions.full -= potionCost
+                getPlayerById(actingPlayer.id).potions.spent += potionCost
+                displayPlayerPanel()
+
+                SecondaryTurnActions.SPEND_ACTION(actionType)
+                BasicActions.SEE_OPTIONS()
+            }
+        },
+        ROLL_DICE: () => {
+            const result = Math.floor(Math.random() * 6 + 1)
+            transmission({
+                classList: ['flex-transmission'],
+                children: [
+                    DICE(result),
+                    {...generateActionList([
+                        {icon: '🎲', name: 'Roll again', onclick: `transmission({classList: ['dice-message'], children: [namePlayerById(actingPlayer.id), ' rolled a ${result}!']}); SecondaryTurnActions.ROLL_DICE()`},
+                        {icon: getWizardIcon(), name: `Move wizard by ${result}`, onclick: `transmission({classList: ['dice-message'], children: [namePlayerById(actingPlayer.id), ' rolled a ${result}!']}); SecondaryTurnActions.MOVE_WIZARD_BY(${result}, 'card')`},
+                        {icon: '🏯', name: `Move tower by ${result}`, onclick: `transmission({classList: ['dice-message'], children: [namePlayerById(actingPlayer.id), ' rolled a ${result}!']}); SecondaryTurnActions.MOVE_TOWER_BY(${result}, 'card')`},
+                        GO_BACK()
+                    ], {children: [namePlayerById(actingPlayer.id), ` rolled a ${result}!`]}), style: ['display: none'], id: 'dice-action-list'}
+                ]
+            }, true)
+            window.setTimeout(() => {
+                const diceActionList = document.getElementById('dice-action-list')
+                document.querySelector('.transmission-container:last-child .dice').style.animation = 'none'
+                diceActionList.style.display = 'block'
+                diceActionList.removeAttribute('id')
+                document.getElementById("terminal-wrapper").scrollTo(0, document.getElementById("terminal-wrapper").scrollHeight)
+            }, 3200)
+        },
+        SPELL: (spellId) => {
+            const spell = SPELLS[spellId]
+            transmission({classList: ['spell-notify'], children: [namePlayerById(actingPlayer.id), ` cast ${spell.name}!`]})
+            spell.action()
+        }
+    }
+
+    const TurnActions = {
+        MOVE_WIZARD: () => {
+            transmission(
+                generateActionList([
+                    ...[1,2,3,4,5].map((disp) => {
+                        return {icon: `${disp}`, name: `space${disp > 1 ? 's' : ''}`, onclick: `SecondaryTurnActions.MOVE_WIZARD_BY(${disp}, 'card')`}
+                    }),
+                    GO_BACK()
+                ], 'Move wizard by...')
+            )
+        },
+        MOVE_TOWER: () => {
+            transmission(
+                generateActionList([
+                    ...[1,2,3,4,5].map((disp) => {
+                        return {icon: `${disp}`, name: '', onclick: `SecondaryTurnActions.MOVE_TOWER_BY(${disp}, 'card')`}
+                    }),
+                    GO_BACK()
+                ], 'Move tower by...')
+            )
+        },
+        SPELL_MENU: () => {
+            transmission(
+                generateActionList([
+                    ...SPELLS.filter((spell) => spell.in && spell.price <= getPlayerById(actingPlayer.id).potions.full && (spell.condition ? spell.condition() : true))
+                    .map((spell) => {
+                        return {icon: typeof spell.icon[0] == 'string' ? spell.icon[0] : {children: spell.icon}, name: spell.name, onclick: `SecondaryTurnActions.SPELL(${spell.id})`}
+                    }),
+                    GO_BACK()
+                ], 'Choose a spell...')
+            )
+        }
+    }
+
+    let actingPlayer
+    let imminentEndOfGame = false
+
+    const BasicActions = {
+        PLAY_AGAIN: () => {
+            players = players.map((player) => {
+                return {...player, wizardsInRavenskeep: 0, potions: {empty: POTION_COUNTS[nPlayers], full: 0, spent: 0}}
+            })
+            imminentEndOfGame = false
+            setupGame()
+        },
+        ROUND: () => 
+            {
+                if (imminentEndOfGame) {
+                    transmission('Game over!')
+                    const prospectiveWinners = players.filter(player => player.potions.empty == 0 && player.wizardsInRavenskeep == WIZARD_COUNTS[nPlayers])
+                    const maxFullPotions = Math.max(...prospectiveWinners.map((player) => player.potions.full))
+                    const winners = prospectiveWinners.filter((player) => player.potions.full == maxFullPotions)
+                    const winnerNames = winners.map((player) => namePlayerById(player.id))
+                    const conjoinedWinnerNames = winners.length == 1 ? winnerNames
+                        : winners.length == 2 ? [winnerNames[0], ' and ', winnerNames[1]]
+                        : winnerNames.map((name, index) => [name, index == winners.length - 1 ? '' : index == winners.length - 2 ? ', and ' : ', ']).flat()
+                    transmission([...conjoinedWinnerNames, ` ${winners.length == 1 ? 'has' : 'have'} won!`, generateActionList([{icon: '🔄', name: 'Play again', onclick: 'BasicActions.PLAY_AGAIN()'}])])
+                    return
+                }
+                actingPlayer = { id: -1 }
+                enqueue(BasicActions.ROUND)
+                players.forEach(() => {
+                    enqueue(BasicActions.NEXT_TURN)
+                })
+                nextInQueue()
+            },
+        NEXT_TURN: () =>
+            {
+                const playerJustWent = getPlayerById((actingPlayer.id + nPlayers) % nPlayers)
+                if (playerJustWent.potions.empty == 0 && playerJustWent.wizardsInRavenskeep == WIZARD_COUNTS[nPlayers]) {
+                    transmission([namePlayerById(actingPlayer.id), ` has met the win condition! ${(actingPlayer.id == nPlayers - 1 || imminentEndOfGame) ? '' : 'The game will end after this round...'}`])
+                    imminentEndOfGame = true
+                }
+
+                actingPlayer.id++
+                actingPlayer.availableActions = {
+                    card1: true,
+                    card2: true,
+                    spell: true,
+                    forgo: true
+                }
+                displayPlayerPanel()
+                transmission([
+                    `It's `, 
+                    namePlayerById(actingPlayer.id),
+                    `'s turn!`
+                ])
+                BasicActions.SEE_OPTIONS()
+            },
+        SEE_OPTIONS: () => {
+            clearWizardHandlers()
+            clearTowerHandlers()
+            if (!actingPlayer.availableActions.card1 && !actingPlayer.availableActions.card2
+            && !(actingPlayer.availableActions.spell && getPlayerById(actingPlayer.id).potions.full > 0) 
+            && !actingPlayer.availableActions.forgo) {
+                nextInQueue()
+                return
+            }
+            transmission(
+                generateActionList([
+                    ...(actingPlayer.availableActions.card1 || actingPlayer.availableActions.card2 ? [
+                        {icon: getWizardIcon(), name: 'Move a wizard', onclick: 'TurnActions.MOVE_WIZARD()'},
+                        {icon: '🏯', name: 'Move a tower', onclick: 'TurnActions.MOVE_TOWER()'},
+                        {icon: '🎲', name: 'Roll dice', onclick: 'SecondaryTurnActions.ROLL_DICE()'}
+                    ] : []),
+                    ...(actingPlayer.availableActions.spell && getPlayerById(actingPlayer.id).potions.full > 0 ? [
+                        {icon: '🪄', name: 'Use a spell', onclick: 'TurnActions.SPELL_MENU()'}
+                    ] : []),
+                    ...(actingPlayer.availableActions.forgo ? [
+                        {icon: '💤', name: 'Forgo actions', onclick: `SecondaryTurnActions.MOVE_TOWER_BY(1, 'forgo')`}
+                    ] : []),
+                    {icon: '❌', name: 'End turn', onclick: 'nextInQueue()'}
+                ])
+            )
+        }
+    }
+
+    const getWizardIcon = () => {
+        return {
+            children: [{
+                tag: 'img',
+                classList: ['action-icon'],
+                src: `./wizards/${getPlayerById(actingPlayer.id).color}.png`
+            }]
+        }
+    }
+
+    const generateActionList = (actionList, caption = '') => {
+        return {
+            classList: ['action-list-wrapper', ...(actionList.length > 6 ? ['action-list-wrap-wrapper'] : [])],
+            children: [
+                ...(caption.length == 0 ? [] : [
+                    {
+                        classList: ['action-list-caption'],
+                        children: [caption]
+                    }
+                ]),
+                {
+                    classList: ['action-list'],
+                    children: actionList.map(generateActionItem)
+                }
+            ]
+        }
+    }
+
+    const generateActionItem = (actionItem) => {
+        return {
+            classList: ['action-item-wrapper'],
+            children: [
+                {
+                    classList: ['action-item'],
+                    children: [
+                        {
+                            classList: ['action-icon'],
+                            children: [actionItem.icon]
+                        },
+                        actionItem.name
+                    ]
+                }
+            ],
+            onclick: actionItem.onclick
+        }
+    }
+
+// #endregion
+
+// #region QUEUESTUFFS: TERMINAL SETUP
+
+    let queue = []
+
+    const enqueue = (item) => {
+        queue.unshift(item)
+    }
+
+    const nextInQueue = () => {
+        const next = queue.shift()
+        next()
+    }
+
+    const transmission = (input, burnAfterNext = false) => {
+        // removeOptions()
+        const transmissionElementTemplate = (elementTemp) => {
+            const children = Array.isArray(elementTemp)
+                ? elementTemp
+                : [elementTemp]
+            const childClasses = children.length > 0 && typeof children[0] != 'string' && children[0].classList ? children[0].classList : []
+            if (burnAfterNext) {
+                childClasses.push('burn-after-next')
+            }
+            return {
+                classList: ['transmission-container', ...childClasses.map((className) => `transmission-container-${className}`)],
+                children: [
+                    {
+                        classList: ['transmission'],
+                        children: children
+                    }
+                ]
+            }
+        }
+        const newTransmission = displayElementTemplate(transmissionElementTemplate(input))
+        document.getElementById("terminal").appendChild(newTransmission)
+        document.getElementById("terminal-wrapper").scrollTo(0, document.getElementById("terminal-wrapper").scrollHeight)
+    }
+
+    // #endregion
+
+// #region PLAYER HANDLING AND BOARD DISPLAY
+
+    const playerPanelElementTemplate = (player) => {
+        return {
+            classList: ['player-panel', `player-${player.color}`, ...(actingPlayer.id == player.id ? ['active-player'] : [])],
+            children: [
+                {
+                    classList: ['player-name'],
+                    children: [
+                        player.name
+                    ]
+                },
+                {
+                    classList: ['player-wizards'],
+                    children: [
+                        ...[...Array(WIZARD_COUNTS[nPlayers])].map((_, i) => {
+                            return {
+                                tag: 'img',
+                                classList: ['player-wizard', ...(i < player.wizardsInRavenskeep ? [] : ['ghost'])],
+                                src: `./wizards/${player.color}.png`
+                            }
+                        })
+                    ]
+                },
+                {
+                    classList: ['player-potions'],
+                    children: [
+                        ...[...[...Array(player.potions.spent)].map(() => 'spent'),
+                        ...[...Array(player.potions.full)].map(() => 'full'),
+                        ...[...Array(player.potions.empty)].map(() => 'empty')]
+                        .map((potionType) => {
+                            {
+                                return {
+                                    tag: 'span',
+                                    classList: ['player-potion-wrapper', ...(potionType == 'spent' ? ['spent'] : [])],
+                                    children: [{
+                                        classList: ['player-potion'],
+                                        tag: 'img',
+                                        src: (potionType == 'empty' ? './potions/empty.png' : `./potions/${player.color}.png`)
+                                    }]
+                                }
+                            }
+                        })
+                    ]
+                }
+            ]
+        }
+    }
+
+    const displayPlayerPanel = () => {
+        document.getElementById('player-panel').replaceChildren(...players.map((player) => displayElementTemplate(playerPanelElementTemplate(player))))
+    }
+
+// #endregion
+
+// #region BOARD ENTITY DISPLAY METHODS
+
+    const bounceGlade = (gladeId) => {
+        const gladeElement = document.getElementById(gladeId)
+        if (!gladeElement) return
+        gladeElement.animate([
+            {transform: `translateY(0%)`},
+            {transform: `translateY(calc(var(--tower-wall-width) * 2))`},
+            {transform: `translateY(0%)`},
+            {transform: `translateY(calc(var(--tower-wall-width) * 0.5))`},
+            {transform: `translateY(0%)`},
+            {transform: `translateY(0%)`},
+        ], {duration: 500, easing: 'ease-out'})
+    }
+
+    const displayElementTemplate = (template) => {
+        if (typeof template == 'string') {
+            const textNode = document.createTextNode(template)
+            return textNode
+        }
+        const element = document.createElement(template.tag || 'div')
+        if (template.classList && template.classList.length > 0) {
+            for (const className of template.classList) {
+                element.classList.add(className)
+            }
+        }
+        if (template.id) {
+            element.id = template.id
+        }
+        if (template.style) {
+            element.setAttribute('style', template.style)
+        }
+        if (template.children && template.children.length > 0) {
+            element.replaceChildren(...template.children.map(displayElementTemplate))
+        }
+        for (const property in template) {
+            if (!['tag', 'id', 'style', 'classList', 'children'].includes(property)) {
+                element.setAttribute(property, template[property])
+            }
+        }
+        return element
+    }
+
+    const displayBoard = () => {
+        document.getElementById('board').replaceChildren(...glades.map((glade) => displayElementTemplate(gladeElementTemplate(glade))))
+    }
+
+// #endregion
+
+// #region INITIALIZATIONS
+
+    let players // id, number, name, color, wizardstats/potionstats
+    let glades
+    let towers
+    let wizards
+    let nPlayers
+
+    const POTION_COUNTS = [0,6,6,5,5,4,4]
+    const WIZARD_COUNTS = [0,5,5,4,4,3,3]
+    const TOWER_CAPACITIES = [3,3,3,2,2,2,1,1,1]
+
+    const setupGame = () => {
+// setup wizards
+        const wizardCount = WIZARD_COUNTS[nPlayers] * nPlayers
+        let currentTowerId = 0
+        let currentTowerPopulation = 0
+        wizards = [...Array(wizardCount)].map((_, id) => {
+            const playerId = id % nPlayers
+            if (TOWER_CAPACITIES[currentTowerId] == currentTowerPopulation) {
+                currentTowerId++
+                currentTowerPopulation = 0
+            }
+            currentTowerPopulation++
+            return {
+                id: `wizard-${id}`,
+                numId: id,
+                playerId: playerId,
+                surfaceImOn: `tower-${currentTowerId}`,
+                gladeImOn: `glade-${currentTowerId}`
+            }
+        })
+        // setup towers
+        let netTowerPopulation = 0
+        towers = [...[...Array(9)].map((_, id) => {
+            let myPopulation = TOWER_CAPACITIES[id]
+            if (netTowerPopulation + myPopulation >= wizardCount) {
+                myPopulation = wizardCount - netTowerPopulation
+            }
+            const myWizards = [...Array(myPopulation)].map(() => wizards[netTowerPopulation++].id)
+            return {
+                numId: id,
+                id: `tower-${id}`,
+                wizardsOnMe: myWizards,
+                gladeImOn: `glade-${id}`,
+                isBlue: id % 2 == 0,
+                name: `ABCDEFGHI`[id]
+            }
+        }), {
+            isRavenskeep: true,
+            numId: 9,
+            id: `ravenskeep`,
+            wizardsOnMe: [],
+            gladeImOn: `glade-15`,
+            isBlue: false,
+            name: 'R'
+        }]
+        // setup glades
+        glades = [...Array(16)].map((_, id) => {
+            return {
+                numId: id,
+                id: `glade-${id}`,
+                wizardsOnMe: [],
+                towersOnMe: id < 9 ? [`tower-${id}`] : id == 15 ? [`ravenskeep`] : [],
+                isBlue: id % 4 == 3
+            }
+        })
+        // finish
+        document.getElementById('configs-wrapper').style.display = 'none'
+        document.getElementById('game').style.display = 'block'
+        displayBoard()
+        BasicActions.ROUND()
+        displayPlayerPanel()
+    }
+
+    const finishConfigs = () => {
+        // setup players
+        const TRs = Array.from(document.getElementById('player-configs').children)
+        nPlayers = TRs.length
+        players = TRs.map((tr, id) => {
+            return {
+                id: id,
+                number: id + 1,
+                name: tr.getElementsByClassName('player-name-input')[0].value,
+                color: COLORS.find((color) => tr.classList.contains(`player-${color}`)),
+                wizardsInRavenskeep: 0,
+                potions: {
+                    empty: POTION_COUNTS[nPlayers],
+                    full: 0,
+                    spent: 0
+                }
+            }
+        })
+        document.getElementById('spells-wrapper').replaceChildren(...SPELLS.filter((spell) => spell.in).map((spell) => displayElementTemplate(spellBadgeElementTemplate(spell))))
+        setupGame()
+    }
+
+// #endregion
+
+// #region CONFIGS LOGIC
+
+    const COLORS = 'red orange green cyan blue magenta'.split(' ')
+
+    const addPlayer = (inputColor = false) => {
+        const tbody = document.getElementById('player-configs')
+        const id = tbody.children.length
+        if (id == 5) {
+            document.getElementById('add-player').style.display = 'none'
+        }
+        const freeColors = COLORS.filter((color) => !tbody.classList.contains(`player-${color}`))
+        const color = inputColor || freeColors[Math.floor(Math.random() * freeColors.length)]
+        const newPlayer = {
+            id: id,
+            number: id + 1,
+            name: `Player ${id + 1}`,
+            color: color
+        }
+        document.getElementById('player-configs').appendChild(
+            displayElementTemplate(playerRowElementTemplate(newPlayer))
+        )
+        document.getElementById('player-configs').classList.add(`player-${newPlayer.color}`)
+        return newPlayer
+    }
+
+    const deletePlayer = (button) => {
+        const tr = button.parentElement
+        const trColor = `player-${COLORS.find((color) => tr.classList.contains(`player-${color}`))}`
+        const tbody = tr.parentElement
+        tbody.classList.remove(trColor)
+        tr.remove()
+        Array.from(document.getElementsByClassName('player-number')).forEach((el, i) => {
+            el.innerHTML = `${i + 1}.`
+        })
+        document.getElementById('add-player').style.display = 'block'
+    }
+
+    const handleColorIconClick = (icon) => {
+        const colors = (element) => {
+            const PLAYER_COLORS = COLORS.map((color) => `player-${color}`)
+            return Array.from(element.classList).filter((className) => PLAYER_COLORS.includes(className))
+        }
+        const tr = icon.parentElement.parentElement.parentElement.parentElement
+        const tbody = tr.parentElement
+        const newColor = colors(icon.parentElement)[0]
+        const oldColor = colors(tr)[0]
+        if (newColor == oldColor) {
+            return
+        } else if (colors(tbody).includes(newColor)) {
+            // swap colors
+            const relevantTr = tbody.querySelector(`tr.${newColor}`)
+            const placeholderClassName = relevantTr.className
+            relevantTr.className = tr.className
+            tr.className = placeholderClassName
+        } else {
+            // choose new unused color
+            tbody.classList.remove(oldColor)
+            tr.classList.remove(oldColor)
+            tbody.classList.add(newColor)
+            tr.classList.add(newColor)
+        }
+    }
+
+    const playerRowElementTemplate = (player) => {
+        return {
+            tag: 'tr',
+            classList: [`player-row`, `player-${player.color}`],
+            children: [
+                {
+                    tag: 'td',
+                    classList: ['player-number'],
+                    children: [`${player.number}.`]
+                },
+                {
+                    tag: 'td',
+                    children: [
+                        {
+                            tag: 'input',
+                            classList: ['player-name-input'],
+                            type: 'text',
+                            value: player.name
+                        }
+                    ]
+                },
+                {
+                    tag: 'td',
+                    children: [
+                        {
+                            classList: ['color-menu'],
+                            children: COLORS.map((color) => {
+                                return {
+                                    classList: ['color-icon', `player-${color}`, 'wizard-img-wrapper'],
+                                    children: [
+                                        {
+                                            tag: 'img',
+                                            classList: ['wizard-img'],
+                                            src: `./wizards/${color}.png`,
+                                            onclick: `handleColorIconClick(this)`
+                                        }
+                                    ]
+                                }
+                            })
+                        }
+                    ]
+                },
+                {
+                    tag: 'td',
+                    classList: player.id > 1 ? ['x-button'] : [],
+                    onclick: `deletePlayer(this)`,
+                    children: [
+                        ...(player.id > 1 ? ['❌'] : [])
+                    ]
+                }
+            ]
+        }
+    }
+
+    const displayPlayerConfigs = () => {
+        const player1 = addPlayer()
+        addPlayer(COLORS.filter((color) => player1.color != color)[Math.floor(Math.random() * 5)])
+    }
+
+    const displaySpellsConfigs = () => {
+        document.getElementById('spell-configs').replaceChildren(...SPELLS.map((spell) => displayElementTemplate(spellDescriptorElementTemplate(spell))))
+    }
+
+    displayPlayerConfigs()
+    displaySpellsConfigs()
+    
+// #endregion
+
+// #region BOARD AND TOWER ROTATION HANDLING
+
+    const TOWER_SPIN_FRAMERATE = 101 // ms
+    const TOWER_SPIN_DURATION = 36000
+    let towerAngle = 0
+    const TOWER_SPIN_ROOT = document.querySelector(':root')
+    window.setInterval(() => {
+        towerAngle += (TOWER_SPIN_FRAMERATE / TOWER_SPIN_DURATION) * 360
+        towerAngle = towerAngle % 360
+        TOWER_SPIN_ROOT.style.setProperty('--tower-spin-angle', `${towerAngle}deg`)
+    }, TOWER_SPIN_FRAMERATE)    
+
+    let gladeAngle = 0
+
+    document.getElementById('board-wrapper').addEventListener('wheel', (e) => {
+        const direction = Math.sign(e.deltaY) || Math.sign(e.deltaX)
+        if (direction == 0) return
+        gladeAngle += (360 / (16 * 8)) * direction
+        gladeAngle = (360 + gladeAngle) % 360
+        const root = document.querySelector(':root')
+        root.style.setProperty('--glade-rotate', `${gladeAngle}`)
+    })
+
+    const startJoystickFollowListeners = (event) => {
+            
+        let gladeAnglePrime = 0
+
+        let gladeRotateInterval = window.setInterval(() => {
+            gladeAngle += gladeAnglePrime
+            gladeAngle = (360 + gladeAngle) % 360
+            const root = document.querySelector(':root')
+            root.style.setProperty('--glade-rotate', `${gladeAngle}`)
+        }, 10)
+
+        const startCoords = {x: event.clientX, y: event.clientY}
+        const size = event.target.getBoundingClientRect().width / 2
+
+        const performJoystickFollow = (e) => {
+            const newCoords = {x: e.clientX, y: e.clientY}
+            const diff = {x: newCoords.x - startCoords.x, y: newCoords.y - startCoords.y}
+            const diffSigns = {x: Math.sign(diff.x), y: Math.sign(diff.y)}
+            const diffAbs = {x: Math.abs(diff.x), y: Math.abs(diff.y)}
+            const clampedDiffAbs = {x: Math.min(size, diffAbs.x), y: Math.min(size, diffAbs.y)}
+            const clampedDiff = {x: diffSigns.x * clampedDiffAbs.x, y: diffSigns.y * clampedDiffAbs.y}
+            document.getElementById('joystick').style.transform = `translate(${clampedDiff.x}px, ${clampedDiff.y}px) translate(-50%, -50%)`
+            
+            if (diffAbs.x + diffAbs.y > 3) {
+                gladeAnglePrime = 0.05 * -1 * diffSigns.x * Math.min(diffAbs.x, 100)
+            }
+        }
+
+        document.body.addEventListener('mousemove', performJoystickFollow)
+
+        const endJoystickFollow = () => {
+            window.clearInterval(gladeRotateInterval)
+            document.getElementById('joystick').style.transform = 'translate(-50%, -50%)'
+            document.body.removeEventListener('mousemove', performJoystickFollow)
+            document.body.removeEventListener('mouseup', endJoystickFollow)
+            document.body.removeEventListener('mouseleave', endJoystickFollow)
+            document.body.removeEventListener('resize', endJoystickFollow)
+        }
+
+        document.body.addEventListener('mouseup', endJoystickFollow)
+        document.body.addEventListener('mouseleave', endJoystickFollow)
+        document.body.addEventListener('resize', endJoystickFollow)
+    }
+
+// #endregion
+
+// #region ENTITY GETTERS AND DISPLAY-HELPERS
+
+    const namePlayerById = (id) => {
+        return {
+            tag: 'span',
+            classList: [`player-${getPlayerById(id).color}`],
+            children: [getPlayerById(id).name]
+        }
+    }
+
+    const genericGetter = (id) => {
+        return getGladeById(id) || getTowerById(id) || getWizardById(id) || -1
+    }
+
+    const genericGetterWithList = (inputId, list, reorderable = false) => {
+        const isGhost = `${inputId}`.startsWith('ghost-')
+        const id = isGhost ? inputId.substring(6) : inputId
+        const numId = +id
+
+        const conditionallyGhostify = (entity) => {
+            if (!isGhost || !entity || typeof entity != 'object') return entity
+            if (isGhost) {
+                return {...entity, 
+                    isGhost: true, 
+                    wizardsOnMe: entity.wizardsOnMe ? entity.wizardsOnMe.map((wizardId) => `ghost-${wizardId}`) : undefined}
+            }
+        }
+
+        if (isNaN(numId)) {
+            return conditionallyGhostify(list.find((entity) => entity.id == id))
+        } else {
+            if (reorderable) {
+                return conditionallyGhostify(list.find((entity) => entity.numId == id))
+            } else {
+                return conditionallyGhostify(list[numId])
+            }
+        }
+    }
+
+    const getGladeById = (id) => {
+        return genericGetterWithList(id, glades)
+    }
+
+    const getTowerById = (id) => {
+        return genericGetterWithList(id, towers)
+    }
+
+    const getWizardById = (id) => {
+        return genericGetterWithList(id, wizards, true)
+    }
+
+    const getPlayerById = (id) => {
+        return genericGetterWithList(id, players)
+    }
+// #endregion
+
+// #region ELEMENT TEMPLATES
+
+    const DICE = (num) => {
+        return {
+            classList: ['dice-wrapper'],
+            children: [
+                {
+                    classList: ['dice-rotator'],
+                    style: `transform: ${['none', 'none', 'rotate3d(-1,0,0,90deg)', 'rotate3d(0,-1,0,90deg)', 'rotate3d(0,1,0,180deg)', 'rotate3d(1,0,0,90deg)', 'rotate3d(0,1,0,90deg)'][num]}`,
+                    children: [
+                        {
+                            classList: ['dice'],
+                            children: [
+                                ...[1,2,3,4,5,6].map((id) => {
+                                    return {
+                                        classList: ['dice-face']
+                                    }
+                                })
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+
+    const gladeElementTemplate = (glade) => {
+        return {
+            classList: ['glade-wrapper'],
+            style: `transform: translateY(calc(-4.5 * sin(30deg) * var(--glade-diameter))) translate3d(
+                calc((cos(360deg*${glade.numId - 4}/16 + var(--glade-rotate) * 1deg) / 2 + 0.5) * var(--glade-available-width)),
+                0,
+                calc((sin(360deg*${glade.numId - 4}/16 + var(--glade-rotate) * 1deg) / 2 + 0.5) * var(--glade-available-width)))`,
+            onclick: 'handleGladeClick(this)',
+            children: [
+                {
+                    classList: glade.isBlue ? ['glade', 'blue'] : ['glade'],
+                    id: glade.id,
+                    children: [
+                        {
+                            classList: ['glade-body'],
+                            children: [
+                                {
+                                    classList: ['glade-label-wrapper'],
+                                    children: [
+                                        {
+                                            classList: ['glade-label'],
+                                            children: [`${glade.numId + 1}`]
+                                        }
+                                    ]
+                                },
+                                {
+                                    classList: ['glade-hangout-wrapper'],
+                                    children: [
+                                        {
+                                            classList: ['glade-hangout'],
+                                            children: [
+                                                ...glade.wizardsOnMe.map((wizardId) => wizardElementTemplate(getWizardById(wizardId)))
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        ...glade.towersOnMe.map((towerId) => towerElementTemplate(getTowerById(towerId)))
+                    ]
+                }
+            ]
+        }
+    }
+
+    const towerElementTemplate = (tower) => {
+        return {
+            classList: ['tower-wrapper',
+                ...(tower.isGhost ? ['ghost'] : []),
+                ...(tower.isBlue ? ['blue'] : []),
+                ...(tower.isRavenskeep ? ['ravenskeep'] : []),
+            ],
+            id: `${tower.isGhost ? 'ghost-' : ''}${tower.id}`,
+            onclick: 'handleTowerClick(this)',
+            children: [
+                {
+                    classList: ['tower'],
+                    children: [
+                        ...[0,1,2,3,4,5].map((id) => {
+                            return {
+                                classList: ['tower-wall']
+                            }
+                        }),
+                        {
+                            classList: ['tower-top']
+                        }
+                    ]
+                },
+                {
+                    classList: ['tower-label-wrapper'],
+                    children: [
+                        {
+                            classList: ['tower-label'],
+                            children: [tower.name]
+                        }
+                    ]
+                },
+                {
+                    classList: ['tower-hangout-wrapper'],
+                    children: [
+                        {
+                            classList: ['tower-hangout'],
+                            children: [
+                                ...tower.wizardsOnMe.map((wizardId) => wizardElementTemplate(getWizardById(wizardId)))
+                            ]
+                        }
+                    ]
+                },
+                
+            ]
+        }
+    }
+
+    const wizardElementTemplate = (wizard) => {
+        return {
+            classList: ['wizard',
+                ...(wizard.isGhost ? ['ghost'] : []),
+            ],
+            onclick: `handleWizardClick(this)`,
+            id: `${wizard.isGhost ? 'ghost-' : ''}${wizard.id}`,
+            children: [
+                {
+                    tag: 'img',
+                    classList: ['wizard-img'],
+                    src: `./wizards/${getPlayerById(wizard.playerId).color}.png`
+                }
+            ]
+        }
+    }
+
+// #endregion
+
+</script>
