@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Board Games</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@500');
+        @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@700');
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1d1c21;
+            font-family: 'Inconsolata', monospace;
+            height: 100dvh;
+            display: flex;
+            align-items: center;
+        }
+
+        * {
+            box-sizing: border-box;
+            color: #d0c7e4;
+            text-align: center;
+            margin: 0;
+            cursor: default;
+        }
+
+        section {
+            margin: auto;
+            max-width: 800px;
+            gap: 2ch;
+            max-height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 2ch;
+            overflow: auto;
+        }
+
+        div {
+            flex-grow: 1;
+            min-width: calc(50% - 1ch);
+            background: #29282e;
+            border: 1px solid #d0c7e488;
+            box-shadow: 0 0 20px #000;
+            padding: 2ch;
+            border-radius: 2ch;
+            gap: 2ch;
+            display: flex;
+            flex-direction: column;
+        }
+
+        div:hover {
+            animation: cardtilt 0.3s ease-in-out;
+        }
+
+        @keyframes cardtilt {
+            0% {transform: rotate(0deg);}
+            20% {transform: rotate(-2deg);}
+            55% {transform: rotate(1.5deg);}
+            80% {transform: rotate(-1deg);}
+            95% {transform: rotate(0.5deg);}
+        }
+
+        a {
+            display: block;
+            padding: 1ch;
+            border: 1px solid #d0c7e488;
+            border-radius: 100dvh;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: box-shadow 0.2s ease-in-out;
+        }
+
+        a:hover {
+            box-shadow: 0 0 8px #000;
+        }
+    </style>
+</head>
+<body>
+    <section>
+        <div>
+            <h2>Flip 7</h2>
+            <p>Blackjack-like card game</p>
+            <a href="flip7/flip7.html">Server</a>
+        </div>
+        <div>
+            <h2>One Night Ultimate Werewolf</h2>
+            <p>Hidden-role card game</p>
+            <a href="ONUW/client.html">Client</a>
+        </div>
+        <div>
+            <h2>Wandering Towers</h2>
+            <p>Strategic board game</p>
+            <a href="wanderingtowers/client.html">Client</a>
+            <a href="wanderingtowers/server.html">Server</a>
+        </div>
+    </section>
+</body>
+</html>
