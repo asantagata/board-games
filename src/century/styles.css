@@ -1,0 +1,620 @@
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@500');
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@700');
+    
+:root {
+    --back: #27201e;
+    --dark: #181514;
+    --text: #f8e8e3;
+    --playerarea-dark: #0004;
+    --halftext: color-mix(in oklab, var(--text) 100%, var(--back) 80%);
+    --md: 0.5rem;
+    --lg: 1rem;
+    --cardheight: 96px;
+    --cardwidth: 64px;
+    --gap: 2px;
+    --totem-pole-width: var(--lg);
+
+    --y: #e0ae31;
+    --g: #4ed33c;
+    --b: #36aabe;
+    --p: #e73c92;
+    --o: #f46d3c;
+}
+
+body {
+    background: var(--back);
+    color: var(--text);
+    width: 100dvw;
+    min-width: calc(11 * var(--cardwidth) + 12 * var(--md) + 2 * var(--totem-pole-width) + 4 * var(--md));
+    height: 100dvh;
+    margin: 0;
+    font-size: small;
+    user-select: none;
+}
+
+#app, #app > div {
+    width: 100%;
+    height: 100%;
+}
+
+* {
+    font-family: 'Inconsolata';
+    box-sizing: border-box;
+    font-size: inherit;
+}
+
+svg {
+    width: var(--lg);
+    height: var(--lg);
+    vertical-align: middle;
+}
+
+#player-menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+h2, .path {
+    margin: 0;
+    text-transform: uppercase;
+    color: var(--halftext);
+    font-weight: bold;
+}
+
+.color-gem {
+    transition: opacity 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.color-gem:not(.selected-color-gem) {
+    opacity: 0.4;
+}
+
+.selected-color-gem {
+    cursor: default;
+}
+
+.player-row, .color-row {
+    display: flex;
+    align-items: center;
+    gap: var(--md);
+}
+
+.player-list {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: var(--md);
+}
+
+.player-buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.player-buttons:nth-child(7) {
+    justify-content: end;
+}
+
+.player-buttons:nth-child(7) > button:first-child {
+    display: none;
+}
+
+input {
+    background: var(--dark);
+    color: var(--text);
+    border: none;
+    padding: var(--md);
+    border-radius: var(--md);
+}
+
+button {
+    border: none;
+    color: inherit;
+    display: flex;
+    cursor: pointer;
+    background: color-mix(in oklab, var(--back) 100%, var(--text) 10%);
+    padding: var(--md);
+    border-radius: var(--md);
+}
+
+button:hover { background: color-mix(in oklab, var(--back) 100%, var(--text) 15%); }
+button:active { background: color-mix(in oklab, var(--back) 100%, var(--text) 20%); }
+
+.card {
+    height: var(--cardheight);
+    width: var(--cardwidth);
+    border-radius: var(--md);
+    display: flex;
+    transition: transform 0.2s ease-in-out;
+    background-clip: padding-box;
+    box-shadow: 0 0 2px 0px #000;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.card:hover {
+    animation: cardtilt 0.3s ease-in-out;
+    z-index: 99;
+}
+
+@keyframes cardtilt {
+    0% {transform: rotate(0deg);}
+    20% {transform: rotate(-8deg);}
+    50% {transform: rotate(4deg);}
+    80% {transform: rotate(-1deg);}
+    90% {transform: rotate(0.5deg);}
+}
+
+.merchant-card {
+    --color-1: var(--y);
+    --color-2: var(--g);
+    --color-3: var(--b);
+    --color-4: var(--p);
+    background: url(./assets/merchant.png), linear-gradient(0deg, var(--color-1) 0, var(--color-1) 30%, var(--color-2) 30%, var(--color-2) 56%, var(--color-3) 56%, var(--color-3) 77%, var(--color-4) 77%, var(--color-4) 100%);
+    background-size: 100%;
+}
+
+.used-card {
+    filter: grayscale(0.4) brightness(0.75);
+}
+
+.topurchase-card {
+    outline: 2px solid var(--halftext);
+}
+
+.golem-card {
+    --color-1: var(--y);
+    --color-2: var(--g);
+    --color-3: var(--b);
+    --color-4: var(--p);
+    background: url(./assets/golem.png), linear-gradient(in oklab, var(--color-1) 25%, var(--color-2) 40%, var(--color-3) 60%, var(--color-4) 75%);
+    background-size: 100%;
+}
+
+.golem-card-value {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    margin: var(--md) 0;
+    text-shadow: 0 0 5px #000c;
+    font-size: large;
+    text-align: center;
+}
+
+.card-ribbon {
+    background: color-mix(in oklab, var(--back) 100%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    flex-shrink: 1;
+    padding: var(--md);
+    height: calc(var(--cardheight) + var(--md) * 2);
+    min-width: 0;
+    display: flex;
+    gap: var(--md);
+}
+
+.stretchy-row {
+    max-width: calc(var(--cardwidth) * var(--count) + var(--md) * (var(--count) + 1));
+    flex-shrink: 1;
+    flex-grow: 1;
+    position: relative;
+    border-radius: var(--md);
+}
+
+.merchant-row { width: calc(var(--cardwidth) * 6 + var(--md) * 7); }
+.golem-row { width: calc(var(--cardwidth) * 5 + var(--md) * 6); }
+
+.stretchy-row > .card {
+    --leftpad: var(--md);
+    left: calc(var(--leftpad) + (var(--index) / (var(--count) - 1)) * (100% - 2 * var(--leftpad) - var(--cardwidth)));
+    overflow: hidden;
+    position: absolute;
+}
+
+.rows {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--md);
+    padding: var(--md);
+}
+
+.player-areas {
+    background: var(--dark);
+    flex-grow: 1;
+    padding: var(--md);
+    gap: var(--md);
+    flex-wrap: wrap;
+    display: flex;
+}
+
+.player-area {
+    background: color-mix(in oklab, var(--color) 20%, transparent 100%);
+    border-bottom-right-radius: var(--md);
+    border-top-right-radius: var(--md);
+    padding: var(--md);
+    border-left: 2px solid var(--color);
+    flex-grow: 1;
+    display: flex;
+    gap: var(--md);
+    align-items: start;
+}
+
+.player-area:nth-child(1), .player-area:nth-child(2) {
+    width: calc(50% - 1.5 * var(--md));
+}
+
+.player-cards {
+    border-radius: var(--md);
+    flex-shrink: 1;
+    flex-grow: 1;
+    display: flex;
+    justify-content: end;
+}
+
+.player-cards > .stretchy-row {
+    background: var(--playerarea-dark);
+}
+
+#game {
+    display: flex;
+    flex-direction: column;
+}
+
+.totem-pole {
+    width: var(--totem-pole-width);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.totem {
+    background: var(--color);
+    width: var(--totem-pole-width);
+    height: var(--totem-pole-width);
+    border-radius: 50%;
+}
+
+.flex {
+    display: flex;
+}
+
+.merchant-row, .golem-row {
+    padding: 0 var(--md);
+    height: var(--cardheight);
+}
+
+.gem-set {
+    border: 2px solid var(--halftext);
+    border-radius: var(--cardwidth);
+    display: flex;
+    max-width: var(--cardwidth);
+    min-width: calc(var(--lg) + 4px);
+    min-height: calc(var(--lg) + 4px);
+}
+
+.token {
+    width: calc(var(--lg) + 4px);
+    height: calc(var(--lg) + 4px);
+    border-radius: 50%;
+}
+
+.copper-token { background: #a8653c; }
+.silver-token { background: #b3aaa3; }
+
+.gem-set > * {
+    flex-shrink: 1;
+}
+
+.decorated-row {
+    height: auto;
+    padding: 0 var(--md);
+}
+
+.decorated-row-entry {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--md);
+}
+
+.player-caravan {
+    display: flex;
+    justify-content: start;
+    align-items: start;
+    align-content: start;
+    flex-wrap: wrap;
+    height: calc((max(2, round(up, var(--count) / 5))) * (var(--lg) + 2 * var(--gap) + var(--gap)) - var(--gap));
+    gap: var(--gap);
+}
+
+.player-info {
+    width: calc(5 * (2 * var(--gap) + var(--lg)) + 4 * var(--gap));
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.caravan-gem {
+    background: var(--playerarea-dark);
+    border-radius: 50%;
+    width: calc(var(--lg) + 2 * var(--gap));
+    height: calc(var(--lg) + 2 * var(--gap));
+    display: flex;
+    justify-content: flex-start;
+    padding: var(--gap);
+}
+
+.terminal-wrapper {
+    padding: var(--md);
+    display: flex;
+    gap: var(--md);
+    align-items: stretch;
+    height: calc(var(--md) * 5 + var(--cardheight) + 1em);
+}
+
+.subterminal-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    height: 100%;
+    width: calc(var(--cardwidth) * 2.5);
+}
+
+.terminal {
+    padding: var(--md);
+    background: var(--dark);
+    border-radius: var(--md);
+    overflow: auto;
+    box-shadow: 0 0 2px #0004 inset;
+}
+
+.terminal:has(> .terminal-last-entry:first-child) {
+    overflow: hidden;
+}
+
+.terminal-entry {
+    padding: var(--md) 0;
+    border-bottom: 1px solid color-mix(in oklch, var(--halftext) 50%, transparent 100%);
+    display: flex;
+    justify-content: space-between;
+}
+
+.terminal-entry:hover {
+    background: color-mix(in oklch, var(--back) 50%, transparent 50%);
+}
+
+.revert {
+    color: var(--halftext);
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.terminal, .terminal-last-entry {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.terminal-last-entry {
+    gap: var(--md);
+}
+
+.terminal-last-entry:not(:first-child) {
+    padding-top: var(--md);
+}
+
+.player-basics {
+    color: var(--color);
+    padding-bottom: var(--md);
+}
+
+.player-name {
+    width: 100%;
+    font-size: medium;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.active-player-name::before {
+    content: '● ';
+    opacity: 0.5;
+    animation: blink 1s linear infinite;
+}
+
+@keyframes blink {
+    0% {opacity: 0.5;}
+    50% {opacity: 0.5;}
+    51% {opacity: 0;}
+    100% {opacity: 0;}
+}
+
+.finalround-text {
+    font-style: italic;
+    opacity: 0.8;
+}
+
+.options {
+    padding: 0;
+    height: var(--cardheight);
+    max-width: calc(var(--cardwidth) * var(--count) + var(--md) * (var(--count) - 1));
+}
+
+.option {
+    background: var(--back);
+    padding: var(--md);
+    border-radius: var(--md);
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.options > .card:hover {
+    filter: brightness(1.15) saturate(0.75);
+}
+
+.option-icon {
+    font-size: xx-large;
+}
+
+.option-text {
+    text-align: center;
+}
+
+.option-icon {
+    width: calc(var(--cardwidth) * 0.75);
+    height: calc(var(--cardwidth) * 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.option-icon > svg {
+    width: calc(var(--cardwidth) * 0.5);
+    height: calc(var(--cardwidth) * 0.5);
+}
+
+.options > .card {
+    cursor: pointer;
+    --leftpad: 0px;
+}
+
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+a, .a {
+    color: inherit;
+    cursor: pointer;
+    text-decoration: underline
+}
+
+a:hover, .a:hover {
+    text-decoration: none;
+}
+
+.gap-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--md);
+    padding-top: var(--md);
+}
+
+.modal-wrapper {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0004;
+    left: 0;
+    top: 0;
+    color: var(--text);
+}
+
+.modal {
+    display: flex;
+    padding: var(--lg);
+    border-radius: var(--lg);
+    background: var(--back);
+    box-shadow: 0 0 8px 0px #0004;
+}
+
+#quit-modal {
+    max-width: 20dvw;
+    align-items: end;
+    flex-direction: column;
+    gap: var(--md);
+}
+
+#card-modal {
+    width: calc(100dvw - 20dvh);
+    height: calc(100dvh - 20dvh);
+}
+
+.button {
+    background: var(--p);
+    padding: var(--md);
+    border-radius: var(--md);
+    cursor: pointer;
+}
+
+.button:hover { background: color-mix(in oklab, var(--p) 100%, #000 5%) }
+.button:active { background: color-mix(in oklab, var(--p) 100%, #000 10%) }
+
+.tabs {
+    display: flex;
+    flex-direction: column;
+}
+
+.tab {
+    flex-grow: 1;
+    padding: var(--md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: x-large;
+}
+
+.tab:not(.selected-tab):hover {
+    background: color-mix(in oklab, var(--back) 100%, white 5%);
+}
+
+.selected-tab {
+    background: var(--dark);
+    cursor: default;
+}
+
+.card-list {
+    flex-grow: 1;
+    display: flex;
+    padding: var(--md);
+    gap: var(--md);
+    overflow: auto;
+    height: 100%;
+    width: 100%;
+    background: var(--dark);
+    flex-wrap: wrap;
+    align-content: start;
+}
+
+.selected-card-description {
+    width: 20dvw;
+    padding: var(--md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--md);
+    align-items: center;
+    justify-content: center;
+}
+
+.selected-card-description > .card-wrapper {
+    width: calc(2 * var(--cardwidth));
+    height: calc(2 * var(--cardheight));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.selected-card-description > .card-wrapper > .card {
+    transform: scale(2);
+}
+
+.card-description {
+    width: 100%;
+}
+
+.card-description > div {
+    font-style: italic;
+}
