@@ -152,6 +152,15 @@ export function endPlayerTurn() {
 }
 
 function nextTurn() {
+    // refill rows
+    if (context.merchantRow.length < 6 && context.merchantDeck.length > 0) {
+        context.merchantRow.push({cardId: context.merchantDeck.shift(), gems: getEmptyGems()});
+    }
+
+    if (context.golemRow.length < 5) {
+        context.golemRow.push(context.golemDeck.shift());
+    }
+
     const {history, ...restOfStanding} = context.standing;
     context.standing.history.push({...restOfStanding});
 
@@ -177,15 +186,6 @@ function nextTurn() {
     context.standing.turnStartStanding = getTurnStartStanding();
     context.standing.phase = phases.START;
     context.standing.details = undefined;
-
-    // refill rows
-    if (context.merchantRow.length < 6 && context.merchantDeck.length > 0) {
-        context.merchantRow.push({cardId: context.merchantDeck.shift(), gems: getEmptyGems()});
-    }
-
-    if (context.golemRow.length < 5) {
-        context.golemRow.push(context.golemDeck.shift());
-    }
 }
 
 export function revertTo(historyEntry, index) {
