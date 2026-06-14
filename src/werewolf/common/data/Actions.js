@@ -445,7 +445,7 @@ const Actions = {
 
     [ActionIDs.YOUNSOMNIAC$VIEW_CARD]: {
         id: ActionIDs.YOUNSOMNIAC$VIEW_CARD,
-        description: ["You may view the ", Roles[RoleIDs.YOUNSOMNIAC]],
+        description: ["You may view the ", Roles[RoleIDs.YOUNSOMNIAC], '.'],
         continuityType: ContinuityTypes.READ_ONLY,
         do: async function(game) {
             const pi = GameCommands.getCardInitiallyAt(game.actingCardLocation);
