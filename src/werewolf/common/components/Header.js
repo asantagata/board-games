@@ -51,7 +51,7 @@ export default function Header() {
                 class: 'flex gap center',
                 children: [
                     {
-                        tag: 'a', href: '../', children: IconButton({children: Icons.home})
+                        tag: 'a', href: '/werewolf', children: IconButton({children: Icons.home})
                     },
                     ...(context.side === "SERVER" && !context.game ? [IconButton({children: Icons.list, on: {click() {
                         openModal("SAVES");

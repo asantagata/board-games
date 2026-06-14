@@ -17,8 +17,8 @@ export default function Home() {
                     children: [
                         {tag: 'h2', children: "One Night Ultimate Werewolf"},
                         {tag: 'i', class: 'hftx', children: '(the game — but online)'},
-                        {tag: 'a', href: '/host', children: {tag: 'button', children: 'Host game'}},
-                        {tag: 'a', href: '/room', children: {tag: 'button', children: 'Join game'}},
+                        {tag: 'a', href: '/werewolf/host', children: {tag: 'button', children: 'Host game'}},
+                        {tag: 'a', href: '/werewolf/room', children: {tag: 'button', children: 'Join game'}},
                     ]
                 }]
             }

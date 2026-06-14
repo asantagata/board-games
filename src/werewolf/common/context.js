@@ -13,8 +13,8 @@
 
 /** @type {Context} */
 const context = {
-    side: window.location.pathname.startsWith('/room') ? "CLIENT" : 
-        window.location.pathname.startsWith('/host') ? "SERVER" : "HOME",
+    side: window.location.pathname.includes('/room') ? "CLIENT" : 
+        window.location.pathname.includes('/host') ? "SERVER" : "HOME",
     rerender() { throw new Error("context.rerender() called before initialization."); },
     config: null,
     game: null,

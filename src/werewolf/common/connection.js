@@ -4,7 +4,7 @@ import { handleMessageAsServer, sendMessageAsServer } from "../server/serverMess
 import { ConfigObject } from "@server/configUtils.js";
 
 const browserId = 
-// localStorage.getItem('browserId') ??
+localStorage.getItem('browserId') ??
 (() => {
     const UID = Array.from({length: 16}, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join('');
     localStorage.setItem('browserId', UID);
