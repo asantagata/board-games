@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="../styles.css">
+    <base href="">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css"
+    />
+    <title>Werewolf</title>
+</head>
+<body></body>
+<script type="importmap">
+{
+  "imports": {
+    "@/": "/common/",
+    "@client/": "/client/",
+    "@server/": "/server/"
+  }
+}
+</script>
+<script type="module">
+    import { appendChild } from "https://cdn.jsdelivr.net/npm/@fruit-ui/core@latest/src/index.js";
+    import Server from "@/components/Server.js";
+
+    appendChild(document.body, Server());
+</script>
+</html>
