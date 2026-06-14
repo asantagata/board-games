@@ -78,6 +78,8 @@ export function handleCardClick(cardId) {
     const card = context.game.cards[cardId];
     if (context.game.request?.controlType === "CARD" && context.game.request?.predicate?.(card))
         context.game.request.resolve(card);
+    else if (context.game.request?.controlType === "PLAYER")
+        handlePlayerClick(card.atNow.owner.id);
 }
 
 /**
@@ -88,6 +90,8 @@ export function handleArtifactClick(artifactIndex) {
     const artifact = context.game.center.artifacts[artifactIndex];
     if (context.game.request?.controlType === "ARTIFACT" && context.game.request?.predicate?.(artifact))
         context.game.request.resolve(artifact);
+    else if (context.game.request?.controlType === "PLAYER")
+        handlePlayerClick(artifact.ownerId);
 }
 
 /**

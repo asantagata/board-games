@@ -203,8 +203,8 @@ export default function GameComponent() {
                             'rendering-new-phase': context.misc.renderingNewPhase
                         },
                         children: context.misc.placeholderLocations ? [
-                            ...allArtifacts.map(a => Artifact(a, {style: posnStylesAt(`owner${a.ownerId}artifact${a.ownerId === -1 ? a.centerIndex : 0}`), key: `a${a.id}`, on: { click() { handleArtifactClick(a.centerIndex ?? null); handlePlayerClick(a.ownerId); } }})),
-                            ...context.game.cards.map(c => Card(c, {style: posnStylesAt(`owner${c.atNow.owner.id}card${c.atNow.index}`), key: `c${c.id}`, on: { click() { handleCardClick(c.id); handlePlayerClick(c.atNow.owner.id) }, mouseenter() { handleCardHover() }, mouseleave() { handleCardHover() } }})),
+                            ...allArtifacts.map(a => Artifact(a, {style: posnStylesAt(`owner${a.ownerId}artifact${a.ownerId === -1 ? a.centerIndex : 0}`), key: `a${a.id}`, on: { click() { handleArtifactClick(a.centerIndex ?? null); } }})),
+                            ...context.game.cards.map(c => Card(c, {style: posnStylesAt(`owner${c.atNow.owner.id}card${c.atNow.index}`), key: `c${c.id}`, on: { click() { handleCardClick(c.id); }, mouseenter() { handleCardHover() }, mouseleave() { handleCardHover() } }})),
                             ...(context.misc.pips?.map(Pip) ?? [])
                         ] : []
                     },
