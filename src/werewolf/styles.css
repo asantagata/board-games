@@ -99,6 +99,9 @@ input {
     width: max(100dvw,100%);
     background: var(--back);
     padding: var(--md);
+    position: relative;
+    z-index: 99990;
+    box-shadow: 0 1px 1px var(--dark);
 }
 
 .padded { padding: var(--md); }
