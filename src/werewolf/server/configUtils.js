@@ -24,7 +24,7 @@ export function ConfigObject() {
     this.centerCount = 3;
     this.members = [];
 
-    // this.testingRoleIds = [RoleIDs.VILLAGER, RoleIDs.VILLAGER, RoleIDs.VILLAGER, RoleIDs.VILLAGER, RoleIDs.VILLAGER, RoleIDs.VILLAGER];
+    // this.testingRoleIds = [RoleIDs.VILLAGER, RoleIDs.VILLAGER, RoleIDs.VILLAGER, RoleIDs.ALPHA_WOLF, RoleIDs.WEREWOLF, RoleIDs.DREAM_WOLF];
 }
 
 /**

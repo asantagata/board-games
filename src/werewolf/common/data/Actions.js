@@ -24,7 +24,7 @@ const DOPPY_DURING_ACTION_IDS = new Set([ActionIDs.WOLFSDEN$VIEW_WOLVES_OR_CENTE
 const Actions = {
     [ActionIDs.COPYCAT$VIEW_CENTER_CARD_AND_ENQUEUE_ACTION]: {
         id: ActionIDs.COPYCAT$VIEW_CENTER_CARD_AND_ENQUEUE_ACTION,
-        getDescriptionFromRoles: (roles) => ["View a card from the center. This card takes on the viewed card's ", {linkTo: "TEAMS", text: "team alignment"}, ". When the viewed card has an ", {linkTo: "ACTIONS", text: "action"}, " to perform, you will perform it with this card", ...(roles.some(r => r.id === RoleIDs.DOPPELGANGER) ? [", unless it was the ", Roles[RoleIDs.DOPPELGANGER], "."] : ".")],
+        getDescriptionFromRoles: (roles) => ["View a card from the center. The ", Roles[RoleIDs.COPYCAT], " takes on the viewed card's ", {linkTo: "TEAMS", text: "team alignment"}, ". When the viewed card has an ", {linkTo: "ACTIONS", text: "action"}, " to perform, you will perform it as the ", Roles[RoleIDs.COPYCAT], ...(roles.some(r => r.id === RoleIDs.DOPPELGANGER) ? [", unless it was the ", Roles[RoleIDs.DOPPELGANGER], "."] : ".")],
         continuityType: ContinuityTypes.READ_WRITE, alwaysEndsPhase: true,
         do: async function(game) {
             const actingCard = GameCommands.getCardNowAt(game.actingCardLocation);
@@ -57,7 +57,7 @@ const Actions = {
     [ActionIDs.DOPPY$VIEW_PLAYER_CARD_AND_SOMETIMES_ACT]: {
         id: ActionIDs.DOPPY$VIEW_PLAYER_CARD_AND_SOMETIMES_ACT,
         getDescriptionFromRoles: (roles) => {
-            const desc = ["View another player's card. This card takes on the viewed card's ", {linkTo: "TEAMS", text: "team alignment"}, ". You must perform the viewed card's ", {linkTo: "ACTIONS", text: "actions"}, " with this card immediately"];
+            const desc = ["View another player's card. The ", Roles[RoleIDs.DOPPELGANGER], " takes on the viewed card's ", {linkTo: "TEAMS", text: "team alignment"}, ". You must perform the viewed card's ", {linkTo: "ACTIONS", text: "actions"}, " as the ", Roles[RoleIDs.DOPPELGANGER], " immediately"];
             const laterRoles = DOPPY_LATER_ROLE_IDS.filter(rId => roles.some(r => r.id === rId));
             if (laterRoles.length) {
                 desc.push(...[", except for actions of the ", laterRoles.map(id => Roles[id]), ", which are performed separately later on"]);
@@ -140,7 +140,18 @@ const Actions = {
         continuityType: ContinuityTypes.READ_ONLY,
         do: async function() {
             const wolves = GameCommands.getPlayersSuchThat(p => GameCommands.getCardSuchThat(c => c.atInit.owner.id === p.id && (c.role.team.id == TeamIDs.WOLFSDEN || Roles[c.details?.roleId]?.team.id === TeamIDs.WOLFSDEN)));
-            await GameCommands.broadcastAndAwaitOK([`You identify the `, Teams[TeamIDs.WOLFSDEN], ` team: `, wolves, '.']);
+            const statement = [`You identify the `, Teams[TeamIDs.WOLFSDEN], ` team: `, wolves, '. ']
+            const dreamWolves = GameCommands.getPlayersSuchThat(p => GameCommands.getCardSuchThat(c => c.atInit.owner.id === p.id && (c.role.id == RoleIDs.DREAM_WOLF || c.details?.roleId === RoleIDs.DREAM_WOLF)));
+            switch (dreamWolves.length) {
+                case 0: break;
+                case 1: 
+                    statement.push("(Of these, ", dreamWolves, " is a ", Roles[RoleIDs.DREAM_WOLF], ".)");
+                    break;
+                default: 
+                    statement.push("(Of these, ", dreamWolves, " are ", Roles[RoleIDs.DREAM_WOLF], ".)");
+                    break;
+            }
+            await GameCommands.broadcastAndAwaitOK(statement);
             if (wolves.length === 1) {
                 const centerCard = await GameCommands.playerChooseCard({
                     prompt: [`Since you are the only member of the `, Teams[TeamIDs.WOLFSDEN], ` team, you may view a card in the center.`],
@@ -182,11 +193,11 @@ const Actions = {
 
     [ActionIDs.ALPHA_WOLF$GIVE_ALPHA_WOLF]: {
         id: ActionIDs.ALPHA_WOLF$GIVE_ALPHA_WOLF,
-        description: ["Swap the ", Roles[RoleIDs.ALPHA_WOLF], " card (initially a ", Roles[RoleIDs.WEREWOLF], ") with another player's card."],
+        description: ["The first center card is a ", Roles[RoleIDs.WEREWOLF], "! Swap it with another player's card."],
         continuityType: ContinuityTypes.WRITE_ONLY,
         do: async function(game) {
             const playerCard = await GameCommands.playerChooseCard({
-                prompt: [`Choose another player's card to swap with the `, Roles[RoleIDs.ALPHA_WOLF], ` card.`],
+                prompt: [`Choose another player's card to swap with the center `, Roles[RoleIDs.WEREWOLF], ` card.`],
                 predicate: CardPredicates.ANY_OTHER_PLAYER,
                 promptIsTemporary: true
             });
@@ -260,7 +271,7 @@ const Actions = {
 
     [ActionIDs.PI$VIEW_2_AND_ABSORB_EVIL_TEAM]: {
         id: ActionIDs.PI$VIEW_2_AND_ABSORB_EVIL_TEAM,
-        description: ["You may view up to two other players' cards. If either card is not on the ", Teams[TeamIDs.VILLAGE], " team, you stop looking. This card takes on the last viewed card's ", {linkTo: "TEAMS", text: "team alignment"}, "."],
+        description: ["You may view up to two other players' cards. If either card is not on the ", Teams[TeamIDs.VILLAGE], " team, you stop looking. The ", Roles[RoleIDs.PARANORMAL_INVESTIGATOR], " takes on the last viewed card's ", {linkTo: "TEAMS", text: "team alignment"}, "."],
         continuityType: ContinuityTypes.READ_WRITE,
         do: async function(game) {
             const pi = GameCommands.getCardInitiallyAt(game.actingCardLocation);

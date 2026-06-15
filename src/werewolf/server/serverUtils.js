@@ -268,7 +268,7 @@ async function doVotingCeremony(votes) {
 
     // reveal all & display win/lose msg
     context.misc.showAll = true;
-    context.misc.playerTeams = Object.fromEntries(context.game.players.map(p => [p.id, Teams[getPlayerTeamId(p)]]))
+    context.misc.playerTeams = Object.fromEntries(context.game.players.map(p => [p.id, Teams[p.artifact?.teamId ?? getPlayerTeamId(p)]]))
     context.misc.playerWins = Object.fromEntries(context.game.players.map(p => [p.id, evaluatePlayerWin(p)]));
     const winners = context.game.players.filter(p => context.misc.playerWins[p.id]);
     recomputeGamePositions();

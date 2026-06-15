@@ -275,7 +275,7 @@ hr {
     z-index: 99999;
 }
 
-#modal { max-width: calc(100dvw - 2 * var(--md)); }
+#modal { max-width: calc(min(100dvw, 600px) - 2 * var(--md)); }
 
 p {
     text-indent: calc(-1 * var(--md));
