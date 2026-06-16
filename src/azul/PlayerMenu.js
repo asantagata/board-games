@@ -50,7 +50,7 @@ export default function PlayerMenu() {
                         }
                     }))},
                     {class: 'flex fullwidth space-between', children: [
-                        {tag: 'button', children: 'Add player', disabled: (context.players.length === 4) || undefined, on: {click() {
+                        {tag: 'button', children: 'Add player', disabled: (context.players.length === 5) || undefined, on: {click() {
                             const newColor = [1,2,3,4,5].filter(c => !context.players.some(p => p.color === c))[0];
                             const newId = Math.max(...context.players.map(p => p.id)) + 1;
                             const newPlayer = {name: '', id: newId, color: newColor};

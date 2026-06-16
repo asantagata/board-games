@@ -174,7 +174,7 @@ function Footer() {
                     {
                         key: 'fact', id: 'factories', style: {'--n-factories': context.factories.length}, children: [
                             ...context.factories.map(Factory),
-                            ..."ABCDEFGHI".split('').slice(0, context.factories.length).map(i => ({
+                            ..."ABCDEFGHIJK".split('').slice(0, context.factories.length).map(i => ({
                                 tag: 'h2', class: 'factory-letter', children: i
                             }))
                         ]
