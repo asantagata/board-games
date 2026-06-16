@@ -163,7 +163,7 @@ function ArtifactsBody() {
     let artifacts = Object.values(Artifacts);
     if (context.game && context.misc.modalFilter) {
         artifacts = artifacts.filter(a => 
-            context.game.center.artifacts.includes(a)
+            context.game.center.artifacts.some(ca => ca.id === a.id)
             || context.game.players.some(p => p.artifact?.id === a.id)
         );
     }
