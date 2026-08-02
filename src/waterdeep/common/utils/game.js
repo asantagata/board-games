@@ -16,7 +16,7 @@ export function startGame() {
     const questDeck = unseededShuffle(Quests.filter(q => !q.isMandatoryQuest && (!q.isSkullport || $.config.skullport)).map(q => ({...q, ...(q.plotQuestBonus ? {plotQuestBonus: {...q.plotQuestBonus}} : {})})));
     const lordDeck = seededShuffle(Lords.filter(l => !l.isSkullport || $.config.skullport));
     const intrigueDeck = seededShuffle(Intrigues.filter(i => !i.isSkullport || $.config.skullport));
-    const agentsPerPlayer = ($.config.long ? [-1, -1, 4, 3, 2, 2] : [-1, -1, 5, 4, 3, 3, 2])[$.config.players.length];
+    const agentsPerPlayer = (!$.config.long ? [-1, -1, 4, 3, 2, 2, 2] : [-1, -1, 5, 4, 3, 3, 2])[$.config.players.length];
     const players = $.config.players.map((configPlayer, id) => {
         const intrigueDeckIndex = Math.floor(intrigueDeck.length * id / $.config.players.length);
         const gamePlayer = {color: configPlayer.color, name: configPlayer.name?.trim() || 'no-name nelly', id, 
