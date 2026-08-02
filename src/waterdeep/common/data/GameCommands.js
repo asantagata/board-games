@@ -358,7 +358,6 @@ const GameCommands = {
      */
     async PlayerChoose({type, skippable = false, prompt = "Choose.", options = [], predicate = () => true}) {
         const typeArr = (typeof type === "object" ? type : type ? [type] : null);
-        await new Promise(r => setTimeout(r, 100));
         return await new Promise((resolve) => {
             $.request = {resolve: (res) => {
                 $.request = null;
