@@ -253,7 +253,7 @@ const GlossaryExplanation = [
             {tag: 'li', children: markdown(["AGENT", ': ', ' — On assigning ', "AGENT", ' here...'])},
             {tag: 'ul', children: [
                 {tag: 'li', children: markdown(["AGENT", ': ', "POB", ' — On assigning ', "AGENT", ' here, get ', "P", ', ', "O", ', or ', "B"])},
-                {tag: 'li', children: markdown(["AGENT", ': ', "P", Icon('caret-right'), "B", ' — on assigning ', "AGENT", ' here, return ', "P", ' & get ', "B"])},
+                {tag: 'li', children: markdown(["AGENT", ': ', "P", Icon('caret-right'), "B", ' — On assigning ', "AGENT", ' here, return ', "P", ' & get ', "B"])},
                 {tag: 'li', children: {tag: 'i', children: markdown(["AGENT", ': is omitted when this is the only text on the card'])}},
             ]},
             {tag: 'li', children: markdown([{tag: 'i', children: 'Owner: '}, " — When an opponent's ", "AGENT", " is assigned here, the building's owner..."])},
