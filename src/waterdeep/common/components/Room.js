@@ -41,9 +41,10 @@ function Config() {
 
             {class: 'flex flex-between gap', key: 'sd', children: [
                 {tag: 'b', class: 'line-after grow', children: {tag: 'span', children: ['SEED']}},
-                {tag: 'input', class: 'padded rounded dkbk', placeholder: 'R374W', value: '', on: {mount() { 
+                {tag: 'input', class: 'padded rounded dkbk', placeholder: 'R374W', value: $.config.seed, on: {mount() { 
                     this.target.focus();
-                    $.config.seed = '';
+                    $.config.seed = new URLSearchParams(window.location.search).get('seed') || '';
+                    this.target.value = $.config.seed;
                     $.rerender();
                  }, input() {
                     this.target.value = this.target.value.toUpperCase();

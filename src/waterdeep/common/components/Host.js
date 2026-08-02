@@ -67,7 +67,7 @@ function Config() {
                 {class: 'flex gap', children: [
                     {class: 'padded rounded dark nowrap', children: $.config.seed},
                     {tag: 'button', class: 'subtle font-md', children: Icon('copy'), on: {click() {
-                        navigator.clipboard.writeText($.config.seed);
+                        navigator.clipboard.writeText(`https://boardgames.alexsantagata.dev/waterdeep/room?seed=${$.config.seed}`);
                     }}},
                     {tag: 'button', class: 'subtle font-md', children: Icon('arrow-clockwise'), on: {click() {
                         $.config.seed = getRandomSeed(); $.rerender();
