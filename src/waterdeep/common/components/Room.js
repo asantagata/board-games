@@ -95,7 +95,9 @@ function IntrigueRoom() {
         class: 'dkbk padded overflow-auto shrink-0', children: [
             {class: 'col gap', children: [
                 {tag: 'b', class: 'line-after grow', children: {tag: 'span', children: ["LORD (", Icon('crown', 'tx-GOLD'), ")"]}},
-                Lord($.client.lord),
+                {class: 'center', children: [
+                    Lord($.client.lord),
+                ]},
                 
                 {tag: 'b', class: 'line-after grow', children: {tag: 'span', children: ["INTRIGUES (", ResourceIcon("INTRIGUE"), ")"]}},
                 {
