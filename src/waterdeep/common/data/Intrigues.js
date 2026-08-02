@@ -218,7 +218,7 @@ export const IntrigueTypes = [
         $.game.corruptionOnTrack -= 2;
     }},
 
-    {name: "Call In A Favor", description: ["Get ", {"GOLD": 4}, '/', {"O": 2}, '/', {"B": 2}, '/', "P", '/', "W"], count: 2, action: async () => {
+    {name: "Call In A Favor", description: ["Get ", {"GOLD": 4}, ', ', {"O": 2}, ', ', {"B": 2}, ', ', "P", ', or ', "W"], count: 2, action: async () => {
         const options = [{"GOLD": 4}, {"O": 2}, {"B": 2}, {"P": 1}, {"W": 1}];
         const optionId = await GameCommands.PlayerChoose({
             prompt: [$.game.actingPlayer, " must choose a reward."],
