@@ -65,7 +65,7 @@ function Config() {
             {class: 'flex flex-between gap', key: 'seed', children: [
                 {tag: 'b', class: 'line-after grow', children: 'SEED'},
                 {class: 'flex gap', children: [
-                    {class: 'padded rounded dark', children: $.config.seed},
+                    {class: 'padded rounded dark nowrap', children: $.config.seed},
                     {tag: 'button', class: 'subtle font-md', children: Icon('copy'), on: {click() {
                         navigator.clipboard.writeText($.config.seed);
                     }}},

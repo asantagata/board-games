@@ -77,7 +77,7 @@ function Config() {
 
             {class: 'flex flex-between gap', key: 'conf', children: [
                 {tag: 'b', class: 'line-after grow', children: {tag: 'span', children: 'CONFIRMATION'}},
-                {class: 'padded rounded dkbk', style: {'white-space': 'nowrap'}, children: getRandomConfirmationString($.client.myId - 1)}
+                {class: 'padded rounded dkbk nowrap', children: getRandomConfirmationString($.client.myId - 1)}
             ]},
 
             {key: 'play', tag: 'button', class: 'subtle font-md grow', children: Icon('play'), on: {click() {
