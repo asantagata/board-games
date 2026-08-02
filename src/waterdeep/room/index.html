@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <base href="">
+    <link rel="stylesheet" href="/waterdeep/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/fill/style.css"
+    />
+    <title>Lords of Waterdeep</title>
+</head>
+<body></body>
+<script type="importmap">
+{
+  "imports": {
+    "@/": "/waterdeep/common/",
+    "@host/": "/waterdeep/host/",
+    "@room/": "/waterdeep/room/"
+  }
+}
+</script>
+<script type="module">
+    import { appendChild } from "https://cdn.jsdelivr.net/npm/@fruit-ui/core@latest/src/index.js";
+    import Room from "@/components/Room.js";
+
+    appendChild(document.body, Room());
+</script>
+</html>
