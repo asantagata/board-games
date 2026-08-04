@@ -211,7 +211,7 @@ const Quests = [
             await GameCommands.ChooseAndPlayIntrigue();
     }, cost: {"B": 4, "P": 2, "GOLD": 2}, benefit: {"VP": 14, "O": 2}, benefitDescription: ["Play ≤", "INTRIGUE"]},
 	{id: questId++, name: "Research Chronomancy", questType: "ARCANA", isSkullport: false, otherBenefit: async () => {
-        if (![...$.game.buildings, ...$.game.buildingShop].some(b => b.actionSpaces).some(a => a.occupants).some(o => o === $.game.actingPlayer.id)) return;
+        if (![...$.game.buildings, ...$.game.buildingShop].some(b => b.actionSpaces).some(a => a.occupants.some(o => o === $.game.actingPlayer.id))) return;
         const actionSpace = await GameCommands.PlayerChoose({
             type: ["GAME ACTION SPACE", "SHOP ACTION SPACE"],
             prompt: [$.game.actingPlayer, " must choose an action space to return ", "AGENT", ` from.`],
