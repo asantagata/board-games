@@ -45,7 +45,7 @@ export function startGame() {
         nextRoundAmbassadorOwner: null,
         thisRoundAmbassadorOwner: null,
         bonuses: {},
-        corruptionOnTrack: 27,
+        corruptionOnTrack: 25,
         harboriteToReassign: null,
         queue: ["ROUND_START"],
         endTurnLoop: false
