@@ -175,7 +175,7 @@ const Buildings = [
     {id: buildingId++, name: "Builder's Hall", isSkullport: false, default: true, actionSpaces: [{
         onPurchasedOrRoundStart: () => $.game.buildingShop.forEach(b => GameCommands.GiveActionSpaceResources(b.actionSpaces[0], {"VP": 1})),
         onPurchasedOrRoundStartDescription: ["VP", " to each ", "BUILDING", " in shop"],
-        feasible: (player) => ((player.resources["GOLD"] ?? 0) >= Math.min(...$.game.buildingShop.map(b => b.goldCost)) && $.game.buildings.find(b => b.id === BuildingNameIdMap["Builder's Hall"])?.actionSpaces[0].occupants?.length),
+        feasible: (player) => (player.resources["GOLD"] ?? 0) >= Math.min(...$.game.buildingShop.map(b => b.goldCost)),
         action: async () => {
             const building = await GameCommands.PlayerChoose({
                 prompt: [$.game.actingPlayer, " must choose a ", "BUILDING", " to purchase."],
