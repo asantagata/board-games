@@ -173,17 +173,6 @@ const Buildings = [
         description: ["Destroy ≤", {"CORRU": 2}, " from your tavern"]
     }]},
     {id: buildingId++, name: "Builder's Hall", isSkullport: false, default: true, actionSpaces: [{
-        description: [],
-        feasible: (player) => (player.resources["GOLD"] ?? 0) >= Math.min(...$.game.buildingShop.map(b => b.goldCost)),
-        action: async () => {
-            const building = await GameCommands.PlayerChoose({
-                prompt: [$.game.actingPlayer, " must choose a ", "BUILDING", " to purchase."],
-                type: "SHOP BUILDING",
-                predicate: b => b.goldCost <= $.game.actingPlayer.resources["GOLD"]
-            });
-            await GameCommands.PurchaseBuilding(building);
-        }
-    }, {
         onPurchasedOrRoundStart: () => $.game.buildingShop.forEach(b => GameCommands.GiveActionSpaceResources(b.actionSpaces[0], {"VP": 1})),
         onPurchasedOrRoundStartDescription: ["VP", " to each ", "BUILDING", " in shop"],
         feasible: (player) => ((player.resources["GOLD"] ?? 0) >= Math.min(...$.game.buildingShop.map(b => b.goldCost)) && $.game.buildings.find(b => b.id === BuildingNameIdMap["Builder's Hall"])?.actionSpaces[0].occupants?.length),
@@ -196,20 +185,6 @@ const Buildings = [
             await GameCommands.PurchaseBuilding(building);
         },
         description: ["Purchase ", "BUILDING"],
-    }, {
-        description: [],
-        feasible: (player) => ((player.resources["GOLD"] ?? 0) >= Math.min(...$.game.buildingShop.map(b => b.goldCost)) && (() => {
-            const building = $.game.buildings.find(b => b.id === BuildingNameIdMap["Builder's Hall"]);
-            return building?.actionSpaces[0].occupants?.length && building?.actionSpaces[1].occupants?.length;
-        })()),
-        action: async () => {
-            const building = await GameCommands.PlayerChoose({
-                prompt: [$.game.actingPlayer, " must choose a ", "BUILDING", " to purchase."],
-                type: "SHOP BUILDING",
-                predicate: b => b.goldCost <= $.game.actingPlayer.resources["GOLD"]
-            });
-            await GameCommands.PurchaseBuilding(building);
-        }
     }]},
     {id: buildingId++, name: "Castle Waterdeep", isSkullport: false, default: true, actionSpaces: [{
         action: async () => {
