@@ -185,7 +185,7 @@ export async function proceedWithScript() {
                 + p.resources["P"] + p.resources["W"] + p.resources["O"] + p.resources["B"] 
                 + Math.floor(p.resources["GOLD"] / 2)
                 - (p.resources["CORRU"] 
-                    * $.game.corruptionOnTrack ? (9 - Math.floor(($.game.corruptionOnTrack - 1) / 3)) : 9)
+                    * Math.ceil((($.game.corruptionOnTrack ?? 0) - 25) / -3))
             }));
             $.ui.showLords = true;
             $.ui.callStack = ["Game end"];
