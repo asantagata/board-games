@@ -1,7 +1,7 @@
 import $ from "@/$.js";
 import Buildings, { BuildingNameIdMap } from "@/data/Buildings.js";
 import Lords from "@/data/Lords.js";
-import Quests from "@/data/Quests.js";
+import Quests, { QuestNameIdMap } from "@/data/Quests.js";
 import Intrigues from "@/data/Intrigues.js";
 import GameCommands from "@/data/GameCommands.js";
 import { seededShuffle, unseededShuffle } from "@/utils/random.js";
@@ -21,7 +21,7 @@ export function startGame() {
         const intrigueDeckIndex = Math.floor(intrigueDeck.length * id / $.config.players.length);
         const gamePlayer = {color: configPlayer.color, name: configPlayer.name?.trim() || 'no-name nelly', id, 
             lord: draw1From(lordDeck),
-            activeQuests: drawNFrom(questDeck, 2),
+            activeQuests: [...drawNFrom(questDeck, 2), Quests[QuestNameIdMap["Protect Converts To Eilistraee"]]],
             completedQuests: [],
             resources: {"P": 0, "W": 0, "O": 0, "B": 0, "VP": 0, "CORRU": 0, "GOLD": id + 4},
             intrigues: [intrigueDeck[intrigueDeckIndex], intrigueDeck[(intrigueDeckIndex + 1) % intrigueDeck.length]],
@@ -159,6 +159,9 @@ export async function proceedWithScript() {
             $.history.at(-1).description = [$.game.actingPlayer, " assigns ", "AGENT", " to ", {tag: 'b', children: Buildings[actionSpace.buildingId].name}, ...(quest ? [" and completes ", {tag: 'b', children: quest.name}] : []) ];
             return proceedWithScript();
         case "REASSIGN_HARBORITES":
+            if ($.game.buildings.find(b => b.id === BuildingNameIdMap["Waterdeep Harbor"]).actionSpaces.flatMap(as => as?.occupants ?? []).filter(o => o !== "AMBASSADOR").length) {
+                $.history.push({eventType: "REASSIGN_HARBORITES", description: ["Reassigning ", "AGENT", " from ", {tag: 'b', children: "Waterdeep Harbor"}]});
+            }
             $.game.queue.push("REASSIGN_HARBORITE");
             $.game.queue.push("REASSIGN_HARBORITE");
             $.game.queue.push("REASSIGN_HARBORITE");
@@ -207,3 +210,5 @@ export async function proceedWithScript() {
             $.rerender();
     }
 }
+
+window.proceedWithScript = proceedWithScript;

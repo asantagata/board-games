@@ -175,7 +175,7 @@ export const IntrigueTypes = [
     {name: "Lack Of Faith", count: 2, ...opponentsReturnXOrYouGetYPartial({"W": 1}, {"VP": 2})},
 
     // DRAW SPECIAL QUESTS
-    {name: "Bidding War", count: 3, description: ["Reveal ", "QUEST", " per player; starting with you, everyone chooses ", "QUEST"], action: async () => {
+    {name: "Bidding War", count: 3, description: ["Reveal ", "FACE-DOWN QUEST", " per player; starting with you, everyone chooses ", "FACE-DOWN QUEST"], action: async () => {
         let quests = $.game.questDeck.splice(0, $.game.players.length);
         const myQ = await GameCommands.PlayerChoose({
             prompt: [$.game.actingPlayer, " must choose ", "QUEST", "."],

@@ -203,7 +203,7 @@ const Quests = [
         await GameCommands.PutShopBuildingUnderPlayerControl(building);
     }, cost: {"W": 1, "O": 1, "B": 1, "GOLD": 2}, benefit: {"VP": 4}, benefitDescription: ["Own ", "BUILDING", " for free"]},
 	{id: questId++, name: "Placate The Walking Statue", questType: "COMMERCE", isSkullport: false, otherBenefit: async () => {
-        await GameCommands.PutShopBuildingUnderPlayerControl($.game.buildingDeck.shift());
+        await GameCommands.PutShopBuildingUnderPlayerControl($.game.buildingDeck.shift(), $.game.actingPlayer, true);
     }, cost: {"W": 2, "B": 2, "GOLD": 4}, benefit: {"VP": 10}, benefitDescription: ["Own random ", "BUILDING", " for free"]},
 	{id: questId++, name: "Prison Break", questType: "SKULLDUGGERY", isSkullport: false, otherBenefit: async () => {
         if ($.game.actingPlayer.intrigues?.some(i => GameCommands.IsIntrigueFeasible(i))) return;
@@ -225,7 +225,7 @@ const Quests = [
     }, cost: {"P": 2, "GOLD": 4}, benefit: {"VP": 4, "P": 1},benefitDescription: ["Return ≤", "AGENT", " to your tavern"]},
 	{id: questId++, name: "Send Aid To The Harpers", questType: "COMMERCE", isSkullport: false, otherBenefit: async () => {
         const opponent = await GameCommands.PlayerChoose({
-            prompt: [],
+            prompt: ["Choose an opponent to get ", {"GOLD": 4}, "."],
             type: "PLAYER",
             predicate: (a) => a !== $.game.actingPlayer
         });

@@ -40,11 +40,11 @@ const $ = {
         showLords: false
     },
     /**
-     * @type {Array<{{
+     * @type {Array<{
      *  eventType: "ROUND_START" | "TURN",
      *  description: Markdown,
      *  historicGame: HistoricGame
-     * }}>}
+     * } | {eventType: "REASSIGN_HARBORITES"}>}
      */
     history: [],
 

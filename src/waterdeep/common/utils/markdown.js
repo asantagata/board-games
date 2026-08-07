@@ -1,7 +1,7 @@
 import { ResourceIcon } from "@/components/Icon.js";
 /** @import { Markdown } from "@/types.js" */
 
-const ResourceTypeKeys = {"P": 1, "W": 1, "O": 1, "B": 1, "PW": 1, "WO": 1, "WB": 1, "PO": 1, "PB": 1, "OB": 1, "PWO": 1, "PWB": 1, "WOB": 1, "POB": 1, "PWOB": 1, "GOLD": 1, "VP": 1, "CORRU": 1, "FACE-UP QUEST": 1, "INTRIGUE": 1, "AGENT": 1, "FIRST": 1, "QUEST": 1, "AMBASSADOR": 1, "BUILDING": 1, "MANDATORY_QUEST": 1};
+const ResourceTypeKeys = {"P": 1, "W": 1, "O": 1, "B": 1, "PW": 1, "WO": 1, "WB": 1, "PO": 1, "PB": 1, "OB": 1, "PWO": 1, "PWB": 1, "WOB": 1, "POB": 1, "PWOB": 1, "GOLD": 1, "VP": 1, "CORRU": 1, "FACE-UP QUEST": 1, "INTRIGUE": 1, "AGENT": 1, "FIRST": 1, "QUEST": 1, "AMBASSADOR": 1, "BUILDING": 1, "MANDATORY_QUEST": 1, "FACE-DOWN QUEST": 1};
 const QuestTypeKeys = {"COMMERCE": 1, "PIETY": 1, "SKULLDUGGERY": 1, "WARFARE": 1, "ARCANA": 1, "MANDATORY": 1};
 
 /**

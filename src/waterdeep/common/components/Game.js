@@ -10,13 +10,13 @@ import { getIntrigueSuggestions } from "@/utils/intrigue.js";
 /** @import { Player } from "@/types.js" */
 
 function CorruTrack() {
-    const trackSpace = $.game.corruptionOnTrack ? (9 - Math.floor(($.game.corruptionOnTrack - 1) / 3)) : 9;
+    const trackSpace = $.game.corruptionOnTrack ? (9 - Math.floor(($.game.corruptionOnTrack + 2) / 3)) : 9;
     const corruOnSpace = $.game.corruptionOnTrack ? ((($.game.corruptionOnTrack) % 3) || 3) : 0;
     return {class: 'corru-track', children: [
         {class: 'line-after corru-pill-wrapper', children: {class: 'pill tbdb tx-dark', children: [
-            `-${trackSpace} `, ...Array.from({length: 3}, (_,i) => Icon('skull', corruOnSpace >= (3 - i) ? 'tx-CORRU' : 'tx-HFCORRU'))]}},
+            `${-1 * trackSpace} `, ...Array.from({length: 3}, () => Icon('skull', 'tx-HFCORRU'))]}},
         {class: 'line-after corru-pill-wrapper', children: {class: 'pill tbdb tx-dark', children: 
-            trackSpace !== 9 ? [`-${trackSpace + 1} `, ...Array.from({length: 3}, () => ResourceIcon("CORRU"))] : [`-10×`, ResourceIcon("VP")]}}
+            trackSpace !== 9 ? [`${-1 * (trackSpace + 1)} `, ...Array.from({length: 3}, (_,i) => Icon('skull', corruOnSpace >= (3 - i) ? 'tx-CORRU' : 'tx-HFCORRU'))] : [`-10×`, ResourceIcon("VP")]}}
     ]};
 }
 
@@ -106,9 +106,13 @@ function Terminal() {
                         render() {
                             return {children: $.history.slice(0,-1).map((hist, ix) => ({ key: `${ix}`, class: 'border-bottom flex flex-between gap', children: [
                                 {class: 'hftx', children: markdown(hist.description)},
-                                {tag: 'button', children: Icon('clock-clockwise'), on: {click() {
-                                    reinstateHistory(hist, ix);
-                                }}}
+                                ...(hist.historicGame ? [
+                                    {tag: 'button', children: Icon('clock-clockwise'), on: {click() {
+                                        reinstateHistory(hist, ix);
+                                    }}}
+                                ] : [
+                                    {tag: 'button', style: {visibility: 'hidden'}, children: Icon('clock-clockwise')}
+                                ])
                             ]}))};
                         },
                         memo: () => $.history.length

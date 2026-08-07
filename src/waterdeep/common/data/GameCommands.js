@@ -229,7 +229,7 @@ const GameCommands = {
             if (ungivableCorru) {
                 let vpToRemove = Math.min(ungivableCorru * 10, (player.resources["VP"] || 0));
                 player.resources["VP"] = (player.resources["VP"] || 0) - vpToRemove;
-                await GameCommands.AwaitOK(["The ", "CORRU", " track is emptied, so ", player, " loses ", {"VP": vpToRemove}, "."]);
+                if (vpToRemove) await GameCommands.AwaitOK(["The ", "CORRU", " track is emptied, so ", player, " loses ", {"VP": vpToRemove}, "."]);
             }
         }
 
@@ -300,8 +300,8 @@ const GameCommands = {
                 if (bonus.feasible && !bonus.feasible(bonus)) return;
                 $.ui.callStack.push(`Handling bonus (${bonus.quest.name})`);
                 await GameCommands.AwaitOK([bonus.owner, " activates their bonus ", {tag: 'b', children: bonus.quest.name}, ": ", {tag: 'i', children: markdown(bonus.description)}, {tag: 'i', children: "!"}]);
-                await bonus.action(bonus);
                 if (bonus.interval) bonus.hasBeenUsedThisInterval = true;
+                await bonus.action(bonus);
                 $.ui.callStack.pop();
             }
         }
@@ -385,14 +385,17 @@ const GameCommands = {
     /**
      * @param {Building} building 
      * @param {Player} player
+     * @param {boolean} isNotShopBuilding
      */
-    async PutShopBuildingUnderPlayerControl(building, player = $.game.actingPlayer) {
+    async PutShopBuildingUnderPlayerControl(building, player = $.game.actingPlayer, isNotShopBuilding = false) {
         if (building.actionSpaces[0].resources?.["VP"]) {
             await GameCommands.GivePlayerBenefits(player, {"VP": building.actionSpaces[0].resources["VP"]});
             building.actionSpaces[0].resources["VP"] = 0;
         }
-        $.game.buildingShop = $.game.buildingShop.filter(b => b !== building);
-        $.game.buildingShop.push($.game.buildingDeck.shift());
+        if (isNotShopBuilding) {
+            $.game.buildingShop = $.game.buildingShop.filter(b => b !== building);
+            $.game.buildingShop.push($.game.buildingDeck.shift());
+        }
         let resources = building.actionSpaces[0].resources ?? {};
         if (building.actionSpaces[0].onPurchasedOrRoundStart)
             resources = GameCommands.GetMergedResources(resources, building.actionSpaces[0].onPurchasedOrRoundStart);

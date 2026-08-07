@@ -262,7 +262,7 @@ const Buildings = [
             if (actionSpace) await GameCommands.UseActionSpace(actionSpace);
         },
         description: ["Use any opponent-occupied action space"]
-    }]} 
+    }]}
 ];
 
 export const BuildingNameIdMap = Object.fromEntries(Buildings.map(b => [b.name, b.id]));
