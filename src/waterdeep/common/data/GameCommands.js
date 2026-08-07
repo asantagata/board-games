@@ -143,6 +143,7 @@ const GameCommands = {
         const DETERMINISTIC = {"P": 1, "W": 1, "O": 1, "B": 1, "VP": 1, "GOLD": 1};
         for (const r in cost) {
             if (DETERMINISTIC[r]) continue;
+            if (r === "GOLD" || r === "CORRU") continue;
             for (let i = 0; i < cost[r]; i++) {
                 let possibilities = r.split('').filter(sr => player.resources[sr]);
                 if (!possibilities.length) {

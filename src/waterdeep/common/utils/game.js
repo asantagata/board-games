@@ -121,14 +121,17 @@ export async function proceedWithScript() {
                 player = $.game.thisRoundAmbassadorOwner;
                 $.game.thisRoundAmbassadorOwner = null;
             } else player = $.game.thisRoundFirstPlayer;
-            $.game.actingPlayer = player;
 
             // quit if no agents or feasible action-spaces
             if (!player.agents.length || !$.game.buildings.some(b => b.actionSpaces.some(a => 
                 GameCommands.IsActionSpaceFeasible(a, player)
-            ))) return proceedWithScript();
+            ))) {
+                $.game.actingPlayer = player;
+                return proceedWithScript();
+            }
             
             $.history.push({eventType: "TURN", description: null, historicGame: gameToHistoric()});
+            $.game.actingPlayer = player;
             $.game.endTurnLoop = false;
             $.ui.callStack.push([player, "'s turn"]);
 

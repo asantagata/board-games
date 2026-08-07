@@ -41,7 +41,7 @@ export const PlotQuestBonuses = [
     {id: bonusId++, trigger: (player) => `${player.id}_ASSIGNS_AGENT_TO_BUILDING_${BuildingNameIdMap["Blackstaff Tower"]}`, action: async (bonus) => {
         if (await GameCommands.AwaitYesNo(["Will ", bonus.owner, " take ", {"P": 1, "CORRU": 1}, "?"]))
             await GameCommands.GivePlayerBenefits(bonus.owner, {"P": 1, "CORRU": 1});
-    }, description: ["On assigning ", "AGENT", " to Blackstaff Tower, can get ", {"P": 1, "CORRU": 1}]},
+    }, description: ["On assigning ", "AGENT", " to Blackstaff Tower, can get +", {"P": 1, "CORRU": 1}]},
     {id: bonusId++, trigger: (player) => `${player.id}_GETS_CORRU`, interval: "TURN", action: async (bonus) => {
         await GameCommands.GivePlayerBenefits(bonus.owner, {"INTRIGUE": 1});
     }, description: ["Once per turn, on getting ", "CORRU", ", get ", "INTRIGUE"]},
