@@ -21,7 +21,7 @@ export function startGame() {
         const intrigueDeckIndex = Math.floor(intrigueDeck.length * id / $.config.players.length);
         const gamePlayer = {color: configPlayer.color, name: configPlayer.name?.trim() || 'no-name nelly', id, 
             lord: draw1From(lordDeck),
-            activeQuests: [...drawNFrom(questDeck, 2), Quests[QuestNameIdMap["Protect Converts To Eilistraee"]]],
+            activeQuests: drawNFrom(questDeck, 2),
             completedQuests: [],
             resources: {"P": 0, "W": 0, "O": 0, "B": 0, "VP": 0, "CORRU": 0, "GOLD": id + 4},
             intrigues: [intrigueDeck[intrigueDeckIndex], intrigueDeck[(intrigueDeckIndex + 1) % intrigueDeck.length]],

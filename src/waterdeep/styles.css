@@ -207,9 +207,7 @@ button.subtle:active { background: color-mix(var(--text) 17%, transparent 100%);
 
 .player { 
     background: color-mix(transparent 100%, var(--tx-PLAYER) 10%);
-    max-width: calc(((100% - var(--md)) / 2) - 1px);
     flex-grow: 1;
-    overflow: auto;
 }
 
 .player > hr { border-radius: 100px; border: 0.1px solid color-mix(transparent 100%, var(--tx-PLAYER) 100%); }

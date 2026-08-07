@@ -192,7 +192,7 @@ export default function Game() {
                 class: 'flex col gap back padded grow height-100dvh overflow-auto', children: [
                     Terminal(),
                     {
-                        class: 'flex gap flex-wrap', children: $.game.players.map(Player)
+                        class: 'flex gap col overflow-auto grow', children: $.game.players.map(Player)
                     }
                 ]
             },
